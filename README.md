@@ -1,9 +1,9 @@
 # networkWhatcher
 
-##Run on local
+## Run on local
 
     make run
   
-##Deploy on cluster
+## Deploy on cluster
 
     make deploy
