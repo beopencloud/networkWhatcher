@@ -1,0 +1,7 @@
+domain: beopenit.com
+layout: go.kubebuilder.io/v2
+projectName: network-watcher
+repo: github.com/beopencloud/network-watcher
+version: 3-alpha
+plugins:
+  go.sdk.operatorframework.io/v2-alpha: {}

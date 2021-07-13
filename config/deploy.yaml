@@ -1,0 +1,260 @@
+---
+
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: network-watcher
+  namespace: default
+
+---
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: network-watcher
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      name: network-watcher
+  template:
+    metadata:
+      labels:
+        name: network-watcher
+    spec:
+      serviceAccountName: network-watcher
+      containers:
+      - name: network-watcher
+        image: beopenit/network-watcher:latest
+        imagePullPolicy: Always
+        env:
+        - name: WATCH_NAMESPACE
+          value: ""
+        - name: USERNAME
+          value: "test"
+        - name: PASSWORD
+          value: "test"
+        - name: SERVICE_CREATE_EVENT_URL
+          value: "http://network-watcher-api-mock.default.svc.cluster.local/service/post"
+        - name: SERVICE_UPDATE_EVENT_URL
+          value: "http://network-watcher-api-mock.default.svc.cluster.local/service/put"
+        - name: SERVICE_DELETE_EVENT_URL
+          value: "http://network-watcher-api-mock.default.svc.cluster.local/service/delete"
+        - name: INGRESS_CREATE_EVENT_URL
+          value: "http://network-watcher-api-mock.default.svc.cluster.local/service/post"
+        - name: INGRESS_UPDATE_EVENT_URL
+          value: "http://network-watcher-api-mock.default.svc.cluster.local/service/put"
+        - name: INGRESS_DELETE_EVENT_URL
+          value: "http://network-watcher-api-mock.default.svc.cluster.local/service/delete"
+        - name: POD_NAME
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.name
+        - name: OPERATOR_NAME
+          value: "network-watcher"
+
+---
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: network-watcher-api-mock
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      name: network-watcher-api-mock
+  template:
+    metadata:
+      labels:
+        name: network-watcher-api-mock
+    spec:
+      containers:
+      - name: network-watcher-api-mock
+        image: beopenit/network-watcher-api-mock:latest
+        imagePullPolicy: Always
+        ports:
+        - containerPort: 8082
+        env:
+        - name: POD_NAME
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.name
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app: network-watcher-api-mock
+  name: network-watcher-api-mock
+spec:
+  ports:
+  - port: 80
+    protocol: TCP
+    targetPort: 8082
+  selector:
+    name: network-watcher-api-mock
+  type: ClusterIP
+
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  creationTimestamp: null
+  name: network-watcher
+rules:
+- apiGroups:
+  - ""
+  resources:
+  - namespaces
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - update
+  - watch
+- apiGroups:
+  - ""
+  resources:
+  - services
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - update
+  - watch
+- apiGroups:
+  - apps
+  resources:
+  - daemonsets
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - update
+  - watch
+- apiGroups:
+  - apps
+  resources:
+  - deployments
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - update
+  - watch
+- apiGroups:
+  - apps
+  resources:
+  - statefulsets
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - update
+  - watch
+- apiGroups:
+  - cnocd.beopenit.com
+  resources:
+  - workloads
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - cnocd.beopenit.com
+  resources:
+  - workloads/status
+  verbs:
+  - get
+  - patch
+  - update
+- apiGroups:
+  - extensions
+  resources:
+  - ingresses
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - update
+  - watch
+
+---
+
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: network-watcher
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: network-watcher
+subjects:
+- kind: ServiceAccount
+  name: network-watcher
+  namespace: default
+
+---
+
+# permissions to do leader election.
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: network-watcher-leader-election-role
+rules:
+- apiGroups:
+  - ""
+  resources:
+  - configmaps
+  verbs:
+  - get
+  - list
+  - watch
+  - create
+  - update
+  - patch
+  - delete
+- apiGroups:
+  - ""
+  resources:
+  - configmaps/status
+  verbs:
+  - get
+  - update
+  - patch
+- apiGroups:
+  - ""
+  resources:
+  - events
+  verbs:
+  - create
+  - patch
+
+---
+
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: network-watcher-leader-election-rolebinding
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: network-watcher-leader-election-role
+subjects:
+- kind: ServiceAccount
+  name: network-watcher
+  namespace: default
+
+---
