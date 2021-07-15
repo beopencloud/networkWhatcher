@@ -1,4 +1,6 @@
 # networkWhatcher
+# Pre requis
+* Go
 
 ## Run on local
 
