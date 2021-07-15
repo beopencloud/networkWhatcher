@@ -18,4 +18,4 @@ After deploying, two pods will be created
 
 Just the namespace that have the label **beopenit.com/network-watching=true** will be able to trace the logs 
      
-     kubectl label ns default label beopenit.com/network-watching=true
+     kubectl label ns default beopenit.com/network-watching=true
