@@ -17,6 +17,15 @@ import (
 
 var serviceWatcherLogger = logf.Log.WithName("service_watcher")
 
+// ++
+// +
+// Voici l'implémentation du watcher de service.
+// vous pouvez voir dans le code les fonctions de callback appelées, dépendance des events add, update et delete service.
+// Au niveau de chaque fonction de callback, on récupère le service concerné et on envoie l'event à l'API.
+// par exemple, lors de la création d'un service, nous obtenons l'objet du service nouvellement créé qu'on
+// envoie à l'API pour lui notifier la creation du nouveau service.
+// +
+// ++
 func serviceWatch(k8sClient utils.ExtendedClient, stopper chan struct{}) {
 	factory := informers.NewSharedInformerFactory(k8sClient, 0)
 	informer := factory.Core().V1().Services().Informer()

@@ -16,6 +16,15 @@ import (
 
 var ingressWatcherLogger = logf.Log.WithName("ingress_watcher")
 
+// ++
+// +
+// Voici l'implémentation du watcher d'Ingress.
+// vous pouvez voir dans le code les fonctions de callback appelées, dépendance des events add, update et delete Ingress.
+// Au niveau de chaque fonction de callback, on récupère l'Ingress concerné et on envoie l'event à l'API.
+// par exemple, lors de la création d'un service, nous obtenons l'objet de l'Ingress nouvellement créé qu'on
+// envoie à l'API pour lui notifier la creation du nouveau service.
+// +
+// ++
 func ingressWatch(k8sClient utils.ExtendedClient, stopper chan struct{}) {
 	factory := informers.NewSharedInformerFactory(k8sClient, 0)
 	informer := factory.Extensions().V1beta1().Ingresses().Informer()

@@ -45,6 +45,12 @@ func init() {
 	// +kubebuilder:rbac:groups=extensions,resources=ingresses,verbs=get;list;watch;create;update;delete
 }
 
+
+// +
+// Le code de base de l'operator a ete generer par l'operator sdk.
+// Y'a juste le dockerfile et la fonction main qui ont ete un peu modifier et
+// les packages watchers et utils qui on été entièrement implementer.
+// +
 func main() {
 	var metricsAddr string
 	var enableLeaderElection bool
@@ -68,8 +74,17 @@ func main() {
 		os.Exit(1)
 	}
 
-	// +kubebuilder:scaffold:builder
+	// ++
+	// +
+	// C'est ici qu'on fait appel aux watchers.
+	// on utilise le goroutine pour que les watchers s'execute en background.
+	// cette instruction est la seule ajouter au niveau de la fonction main. le reste est generer par l'operator sdk
+	// +
+	// ++
 	go watchers.Watch(mgr.GetConfig())
+
+
+	// +kubebuilder:scaffold:builder
 	setupLog.Info("starting manager")
 	if err := mgr.Start(ctrl.SetupSignalHandler()); err != nil {
 		setupLog.Error(err, "problem running manager")

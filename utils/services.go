@@ -16,6 +16,14 @@ type ExtendedClient struct {
 	DynamicClient
 }
 
+// ++
+// +
+// Cette fonction permet de verifier si un namespace est monitoré ou pas par l'operator.
+// Pour qu'un namespace soit monitoré par l'operator, il faut qu'il ait le label beopenit.com/network-watching=true.
+// Si le namespace n'a pas le label, les events create,update, delete service|ingress seront ignoré.
+// +
+// ++
+
 func CheckNamespaceAutoGen(k8sClient ExtendedClient, namespaceName string) (bool, error) {
 	namespace, err := k8sClient.CoreV1().Namespaces().Get(context.TODO(), namespaceName, metav1.GetOptions{})
 	if err != nil {

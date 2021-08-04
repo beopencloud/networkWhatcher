@@ -14,6 +14,16 @@ const (
 	CnocdNamespaceLabelValue = "true"
 )
 
+
+
+// ++
+// +
+// Ce fichier contient la definition des variables d'environment utilisés dans les autres packages.
+// Chaque variable a une valeur par defaut.
+// +
+// ++
+
+
 var (
 	API_CONTENT_TYPE         = "application/json; charset=utf8 "
 	USERNAME                 = "test"

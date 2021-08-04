@@ -6,6 +6,13 @@ import (
 	"net/http"
 )
 
+// ++
+// +
+// Dans ce fichier, on implemente quelques fonctions permettant d'envoyer des requetes HTTP a un service externe.
+// Nous avons par exemple la fonction PostRequestToAPI qui permet d'envoyer une requete POST a un API.
+// +
+// ++
+
 func GetRequestToAPI(requestUrl string) (*http.Response, error) {
 	client := &http.Client{}
 	req, err := http.NewRequest("GET", requestUrl, nil)
