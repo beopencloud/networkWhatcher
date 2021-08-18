@@ -30,10 +30,6 @@ spec:
         env:
         - name: WATCH_NAMESPACE
           value: ""
-        - name: USERNAME
-          value: "test"
-        - name: PASSWORD
-          value: "test"
         - name: SERVICE_CREATE_EVENT_URL
           value: "http://network-watcher-api-mock.default.svc.cluster.local/service/post"
         - name: SERVICE_UPDATE_EVENT_URL
@@ -52,7 +48,16 @@ spec:
               fieldPath: metadata.name
         - name: OPERATOR_NAME
           value: "network-watcher"
-
+        - name: "SECRET_USERNAME"
+          valueFrom:
+             secretKeyRef:
+                name: mysecret
+                key: username
+          - name: "SECRET_PASSWORD"
+            valueFrom:
+              secretKeyRef:
+                name: mysecret
+                key: password
 ---
 
 apiVersion: apps/v1
