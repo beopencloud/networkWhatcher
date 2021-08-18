@@ -20,9 +20,7 @@ import (
 	"flag"
 	"github.com/beopencloud/network-watcher/watchers"
 	"os"
-	"k8s.io/client-go/dynamic"
-	"k8s.io/client-go/kubernetes"
-	
+
 	"k8s.io/apimachinery/pkg/runtime"
 	utilruntime "k8s.io/apimachinery/pkg/util/runtime"
 	clientgoscheme "k8s.io/client-go/kubernetes/scheme"
@@ -39,13 +37,6 @@ var (
 
 func init() {
 	utilruntime.Must(clientgoscheme.AddToScheme(scheme))
-
-	// initialize go-client
-	client, err := kubernetes.NewForConfig(k8s.Config)
-	exitOnErr(err)
-	dynamic, err := dynamic.NewForConfig(k8s.Config)
-	exitOnErr(err)
-	k8sClient := models.ExtendedClient{CoreClient: client, DynamicClient: dynamic}
 
 	// +kubebuilder:scaffold:scheme
 
