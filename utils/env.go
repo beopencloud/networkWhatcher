@@ -33,9 +33,6 @@ var (
 	SERVICE_CREATE_EVENT_URL = "http://localhost:31015/service/post"
 	SERVICE_UPDATE_EVENT_URL = "http://localhost:31015/service/put"
 	SERVICE_DELETE_EVENT_URL = "http://localhost:31015/service/delete"
-	INGRESS_CREATE_EVENT_URL = "http://localhost:31015/ingress/post"
-	INGRESS_UPDATE_EVENT_URL = "http://localhost:31015/ingress/put"
-	INGRESS_DELETE_EVENT_URL = "http://localhost:31015/ingress/delete"
 	IN_CLUSTER            = false
 	KUBECONFIG            = filepath.Join(homeDir(), ".kube", "config")
 )
@@ -56,9 +53,6 @@ func init() {
 	SERVICE_UPDATE_EVENT_URL = getStringValue("SERVICE_UPDATE_EVENT_URL", SERVICE_UPDATE_EVENT_URL)
 	SERVICE_DELETE_EVENT_URL = getStringValue("SERVICE_DELETE_EVENT_URL", SERVICE_DELETE_EVENT_URL)
 
-	INGRESS_CREATE_EVENT_URL = getStringValue("INGRESS_CREATE_EVENT_URL", INGRESS_CREATE_EVENT_URL)
-	INGRESS_UPDATE_EVENT_URL = getStringValue("INGRESS_UPDATE_EVENT_URL", INGRESS_UPDATE_EVENT_URL)
-	INGRESS_DELETE_EVENT_URL = getStringValue("INGRESS_DELETE_EVENT_URL", INGRESS_DELETE_EVENT_URL)
 	KUBECONFIG = getStringValue("KUBECONFIG", KUBECONFIG)
 	IN_CLUSTER = getBoolValue("IN_CLUSTER", IN_CLUSTER)
 

@@ -25,9 +25,6 @@ func Watch(restConfig *rest.Config) {
 		close(stopper)
 	}
     serviceWatch(k8sClient, stopper)
-//	ingressWatch(k8sClient, stopper)
-//	go serviceWatch(k8sClient, stopper)
-//	go ingressWatch(k8sClient, stopper)
 
 }
 
