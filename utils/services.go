@@ -32,7 +32,7 @@ func CheckNamespaceAutoGen(k8sClient ExtendedClient, namespaceName string) (bool
 	}
 	var watch = false
 	for key, value := range namespace.Labels {
-		if key == CnocdNamespaceLabelKey && value == CnocdNamespaceLabelValue {
+		if key == "CnocdNamespaceLabelKey" && value == "CnocdNamespaceLabelValue" {
 			watch = true
 			break
 		}

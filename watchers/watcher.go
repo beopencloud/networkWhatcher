@@ -24,9 +24,7 @@ func Watch(restConfig *rest.Config) {
 	if stopper != nil {
 		close(stopper)
 	}
-	stopper = make(chan struct{})
-	go serviceWatch(k8sClient, stopper)
-	go ingressWatch(k8sClient, stopper)
+    serviceWatch(k8sClient, stopper)
 
 }
 
