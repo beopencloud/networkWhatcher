@@ -12,6 +12,10 @@ import (
 	// We need this import to load the GCP auth plugin which is required to authenticate against GKE clusters.
 	_ "k8s.io/client-go/plugin/pkg/client/auth/gcp"
 	logf "sigs.k8s.io/controller-runtime/pkg/log"
+	"encoding/base64"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"context"
+	"strings"
 )
 
 var ingressWatcherLogger = logf.Log.WithName("ingress_watcher")
@@ -37,7 +41,17 @@ func ingressWatch(k8sClient utils.ExtendedClient, stopper chan struct{}) {
 				if !watch || err != nil {
 					return
 				}
-				res, err := utils.PostRequestToAPI(utils.INGRESS_CREATE_EVENT_URL, ingress)
+				secret, err := k8sClient.CoreV1().Secrets(ingress.Namespace).Get(context.TODO(),"secret-mock", metav1.GetOptions{})
+				if err != nil{
+					panic(err.Error())
+				}
+				username := string(secret.Data["username"])
+				password := string(secret.Data["password"])
+				urlBase      := string(secret.Data["url-ingress"])
+				temp := strings.Split(urlBase, "\n")
+				url :=strings.Join(temp, "")+"post"
+				credentials := base64.StdEncoding.EncodeToString([]byte(username + ":" + password))
+				res, err := utils.PostRequestToAPI(url, credentials, ingress)
 				if err != nil {
 					reqLogger.Error(err, "Error to send ingress create event to API")
 					return

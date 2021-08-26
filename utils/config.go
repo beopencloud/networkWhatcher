@@ -1,4 +1,4 @@
-package config
+package utils
 
 import (
 	"k8s.io/client-go/tools/clientcmd"
@@ -9,7 +9,7 @@ import (
 var Config *rest.Config
 
 func init() {
-	if env.IN_CLUSTER {
+	if IN_CLUSTER {
 		var err error
 		Config, err = rest.InClusterConfig()
 		if err != nil {
@@ -17,7 +17,7 @@ func init() {
 		}
 	} else {
 		var err error
-		Config, err = clientcmd.BuildConfigFromFlags("", env.KUBECONFIG)
+		Config, err = clientcmd.BuildConfigFromFlags("", KUBECONFIG)
 		if err != nil {
 			panic(err.Error())
 		}

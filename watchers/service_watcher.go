@@ -3,12 +3,15 @@ package watchers
 import (
 	"errors"
 	"github.com/beopencloud/network-watcher/utils"
-
 	"io/ioutil"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/client-go/informers"
 	"k8s.io/client-go/tools/cache"
 	"net/http"
+	"encoding/base64"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"context"
+	"strings"
 
 	// We need this import to load the GCP auth plugin which is required to authenticate against GKE clusters.
 	_ "k8s.io/client-go/plugin/pkg/client/auth/gcp"
@@ -33,12 +36,24 @@ func serviceWatch(k8sClient utils.ExtendedClient, stopper chan struct{}) {
 		AddFunc: func(obj interface{}) {
 			go func(obj interface{}) {
 				service := obj.(*corev1.Service)
+				
 				reqLogger := serviceWatcherLogger.WithValues("service", service.Name, "namespace", service.Namespace)
 				watch, err := utils.CheckNamespaceAutoGen(k8sClient, service.Namespace)
 				if !watch || err != nil {
 					return
 				}
-				res, err := utils.PostRequestToAPI(utils.SERVICE_CREATE_EVENT_URL, service)
+				secret, err := k8sClient.CoreV1().Secrets(service.Namespace).Get(context.TODO(),"secret-mock", metav1.GetOptions{})
+				if err != nil{
+					panic(err.Error())
+				}
+				username := string(secret.Data["username"])
+				password := string(secret.Data["password"])
+				urlBase      := string(secret.Data["url-service"])
+				temp := strings.Split(urlBase, "\n")
+				url :=strings.Join(temp, "")+"post"
+				credentials := base64.StdEncoding.EncodeToString([]byte(username + ":" + password))
+
+				res, err := utils.PostRequestToAPI(url,credentials, service)
 				if err != nil {
 					reqLogger.Error(err, "Error to send service create event to API")
 					return

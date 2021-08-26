@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"net/http"
+	"fmt"
 )
 
 // ++
@@ -27,19 +28,21 @@ func GetRequestToAPI(requestUrl string) (*http.Response, error) {
 	return res, nil
 }
 
-func PostRequestToAPI(requestUrl string, body interface{}) (*http.Response, error) {
+func PostRequestToAPI(requestUrl string, credentials string, body interface{}) (*http.Response, error) {
 	data, err := json.Marshal(body)
 	if err != nil {
 		return nil, err
 	}
 	client := &http.Client{}
 	req, _ := http.NewRequest("POST", requestUrl, bytes.NewReader(data))
+	fmt.Println("vvvv", requestUrl)
 	req.Header.Add("Content-Type", API_CONTENT_TYPE)
-	req.Header.Add("Authorization", "Basic "+BASIC_AUTH_CREDENTIALS)
+	req.Header.Add("Authorization", "Basic "+credentials)
 	res, err := client.Do(req)
 	if err != nil {
 		return nil, err
 	}
+	fmt.Println("Event")
 	return res, nil
 }
 

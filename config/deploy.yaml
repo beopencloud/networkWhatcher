@@ -1,11 +1,23 @@
----
 
+# manifest for Network Watcher
 apiVersion: v1
 kind: ServiceAccount
 metadata:
   name: network-watcher
-  namespace: default
+  namespace: operator
 
+---
+# Credentials to authicate to the api-mock
+apiVersion: v1
+kind: Secret
+metadata:
+  name: secret-mock
+type: Opaque
+data:
+  username: bW9kb3U=
+  password: dGVzdA==
+  url-ingress: aHR0cDovL25ldHdvcmstd2F0Y2hlci1hcGktbW9jay5vcGVyYXRvci5zdmMuY2x1c3Rlci5sb2NhbC9pbmdyZXNzLw==
+  url-service: aHR0cDovL25ldHdvcmstd2F0Y2hlci1hcGktbW9jay5vcGVyYXRvci5zdmMuY2x1c3Rlci5sb2NhbC9zZXJ2aWNlLw==
 ---
 
 apiVersion: apps/v1
@@ -31,17 +43,17 @@ spec:
         - name: WATCH_NAMESPACE
           value: ""
         - name: SERVICE_CREATE_EVENT_URL
-          value: "http://network-watcher-api-mock.default.svc.cluster.local/service/post"
+          value: "http://network-watcher-api-mock.operator.svc.cluster.local/service/post"
         - name: SERVICE_UPDATE_EVENT_URL
-          value: "http://network-watcher-api-mock.default.svc.cluster.local/service/put"
+          value: "http://network-watcher-api-mock.operator.svc.cluster.local/service/put"
         - name: SERVICE_DELETE_EVENT_URL
-          value: "http://network-watcher-api-mock.default.svc.cluster.local/service/delete"
+          value: "http://network-watcher-api-mock.operator.svc.cluster.local/service/delete"
         - name: INGRESS_CREATE_EVENT_URL
-          value: "http://network-watcher-api-mock.default.svc.cluster.local/service/post"
+          value: "http://network-watcher-api-mock.operator.svc.cluster.local/service/post"
         - name: INGRESS_UPDATE_EVENT_URL
-          value: "http://network-watcher-api-mock.default.svc.cluster.local/service/put"
+          value: "http://network-watcher-api-mock.operator.svc.cluster.local/service/put"
         - name: INGRESS_DELETE_EVENT_URL
-          value: "http://network-watcher-api-mock.default.svc.cluster.local/service/delete"
+          value: "http://network-watcher-api-mock.operator.svc.cluster.local/service/delete"
         - name: POD_NAME
           valueFrom:
             fieldRef:
@@ -50,16 +62,26 @@ spec:
           value: "network-watcher"
         - name: "SECRET_USERNAME"
           valueFrom:
-             secretKeyRef:
-                name: mysecret
-                key: username
-          - name: "SECRET_PASSWORD"
-            valueFrom:
-              secretKeyRef:
-                name: mysecret
-                key: password
+            secretKeyRef:
+              name: secret-mock
+              key: username
+        - name: "SECRET_PASSWORD"
+          valueFrom:
+            secretKeyRef:
+              name: secret-mock
+              key: password
+        - name: "URL_INGRESS"
+          valueFrom:
+            secretKeyRef:
+              name: secret-mock
+              key: url-ingress
+        - name: "URL_SERVICE"
+          valueFrom:
+            secretKeyRef:
+              name: secret-mock
+              key: url-service
+      
 ---
-
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -85,22 +107,39 @@ spec:
           valueFrom:
             fieldRef:
               fieldPath: metadata.name
+        - name: SERVICE_CREATE_EVENT_URL
+          value: "http://network-watcher-api-gateway.operator.svc.cluster.local/service/post"
+        - name: SERVICE_UPDATE_EVENT_URL
+          value: "http://network-watcher-api-gateway.operator.svc.cluster.local/service/put"
+        - name: SERVICE_DELETE_EVENT_URL
+          value: "http://network-watcher-api-gateway.operator.svc.cluster.local/service/delete"
+        - name: INGRESS_CREATE_EVENT_URL
+          value: "http://network-watcher-api-gateway.operator.svc.cluster.local/service/post"
+        - name: INGRESS_UPDATE_EVENT_URL
+          value: "http://network-watcher-api-gateway.operator.svc.cluster.local/service/put"
+        - name: INGRESS_DELETE_EVENT_URL
+          value: "http://network-watcher-api-gateway.operator.svc.cluster.local/service/delete"
 
----
-apiVersion: v1
-kind: Service
-metadata:
-  labels:
-    app: network-watcher-api-mock
-  name: network-watcher-api-mock
-spec:
-  ports:
-  - port: 80
-    protocol: TCP
-    targetPort: 8082
-  selector:
-    name: network-watcher-api-mock
-  type: ClusterIP
+        - name: "SECRET_USERNAME"
+          valueFrom:
+            secretKeyRef:
+              name: secret-api
+              key: username
+        - name: "SECRET_PASSWORD"
+          valueFrom:
+            secretKeyRef:
+              name: secret-api
+              key: password
+        - name: "URL_SERVICE"
+          valueFrom:
+            secretKeyRef:
+              name: secret-api
+              key: url-service
+        - name: "URL_INGRESS"
+          valueFrom:
+            secretKeyRef:
+              name: secret-api
+              key: url-ingress
 
 ---
 apiVersion: rbac.authorization.k8s.io/v1
@@ -209,7 +248,7 @@ roleRef:
 subjects:
 - kind: ServiceAccount
   name: network-watcher
-  namespace: default
+  namespace: operator
 
 ---
 
@@ -260,6 +299,134 @@ roleRef:
 subjects:
 - kind: ServiceAccount
   name: network-watcher
-  namespace: default
+  namespace: operator
 
 ---
+
+# Manifest for Network Watcher Api Mock
+
+# Service to expose api-mock
+
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app: network-watcher-api-mock
+  name: network-watcher-api-mock
+  namespace: operator
+spec:
+  ports:
+  - port: 80
+    protocol: TCP
+    targetPort: 8082
+  selector:
+    name: network-watcher-api-mock
+  type: ClusterIP
+
+
+---
+# Credentials to authicate to the api-gateway
+apiVersion: v1
+kind: Secret
+metadata:
+  name: secret-api
+  namespace: operator
+type: Opaque
+data:
+  username: bW9kb3U=
+  password: dGVzdA==
+  url-ingress: aHR0cDovL25ldHdvcmstd2F0Y2hlci1hcGktZ2F0ZXdheS5vcGVyYXRvci5zdmMuY2x1c3Rlci5sb2NhbC9pbmdyZXNzLw==
+  url-service: aHR0cDovL25ldHdvcmstd2F0Y2hlci1hcGktZ2F0ZXdheS5vcGVyYXRvci5zdmMuY2x1c3Rlci5sb2NhbC9zZXJ2aWNlLw== 
+  
+---
+# Service to expose api-gateway pod
+
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app: network-watcher-api-gateway
+  name: network-watcher-api-gateway
+  namespace: operator
+spec:
+  ports:
+  - port: 80
+    protocol: TCP
+    targetPort: 8083
+  selector:
+    name: network-watcher-api-gateway
+  type: ClusterIP
+
+
+---
+  
+# Create Role, RoleBinding, ClusterRole, ClusterRoleBinding for allow network-watcher-api-mock
+# to Create secret, create deployment, get namespace
+
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: network-watcher-api-mock-role
+rules:
+- apiGroups:
+  - ""
+  resources:
+  - namespace
+  verbs:
+  - get
+  - list
+  - watch
+- apiGroups:
+  - ""
+  resources:
+  - secret
+  verbs:
+  - get
+  - create
+
+---
+
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: network-watcher-api-mock-roleBinding
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: network-watcher-api-mock-role
+subjects:
+- kind: ServiceAccount
+  name: network-watcher-api-mock
+  namespace: operator
+
+---
+# Manifest for api geteway 
+// For Api Gateway you need to only expose your deployment as service
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: network-watcher-api-gateway
+  namespace: operator
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      name: network-watcher-api-gateway
+  template:
+    metadata:
+      labels:
+        name: network-watcher-api-gateway
+    spec:
+      containers:
+      - name: network-watcher-api-gateway
+        image: beopenit/network-watcher-api-mock:latest
+        imagePullPolicy: Always
+        ports:
+        - containerPort: 8083
+        env:
+        - name: POD_NAME
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.name
+

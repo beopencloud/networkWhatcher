@@ -17,17 +17,22 @@ limitations under the License.
 package main
 
 import (
-	"flag"
+//	"flag"
 	"github.com/beopencloud/network-watcher/watchers"
-	"os"
+//	"os"
 
 	"k8s.io/apimachinery/pkg/runtime"
 	utilruntime "k8s.io/apimachinery/pkg/util/runtime"
 	clientgoscheme "k8s.io/client-go/kubernetes/scheme"
 	_ "k8s.io/client-go/plugin/pkg/client/auth/gcp"
 	ctrl "sigs.k8s.io/controller-runtime"
-	"sigs.k8s.io/controller-runtime/pkg/log/zap"
+//	"sigs.k8s.io/controller-runtime/pkg/log/zap"
 	// +kubebuilder:scaffold:imports
+//	"log"
+"github.com/beopencloud/network-watcher/utils"
+"k8s.io/client-go/rest"
+"k8s.io/client-go/tools/clientcmd"
+"log"
 )
 
 var (
@@ -52,6 +57,9 @@ func init() {
 // les packages watchers et utils qui on été entièrement implementer.
 // +
 func main() {
+	kubeconf,_ := restConfig()
+
+	/*
 	var metricsAddr string
 	var enableLeaderElection bool
 	flag.StringVar(&metricsAddr, "metrics-addr", ":8080", "The address the metric endpoint binds to.")
@@ -73,6 +81,7 @@ func main() {
 		setupLog.Error(err, "unable to start manager")
 		os.Exit(1)
 	}
+	*/
 
 	// ++
 	// +
@@ -81,13 +90,23 @@ func main() {
 	// cette instruction est la seule ajouter au niveau de la fonction main. le reste est generer par l'operator sdk
 	// +
 	// ++
-	go watchers.Watch(mgr.GetConfig())
+	 watchers.Watch(kubeconf)
 
-
+/*
 	// +kubebuilder:scaffold:builder
 	setupLog.Info("starting manager")
 	if err := mgr.Start(ctrl.SetupSignalHandler()); err != nil {
 		setupLog.Error(err, "problem running manager")
 		os.Exit(1)
 	}
+	*/
+}
+
+func restConfig() (*rest.Config, error) {
+	cfg, err := clientcmd.BuildConfigFromFlags("", utils.KUBECONFIG)
+	if err != nil {
+	//	logrus.WithError(err).Fatal("could not get config")
+	   log.Println("Log", err)
+	}
+	return cfg, nil
 }
