@@ -68,7 +68,6 @@ func serviceWatch(k8sClient utils.ExtendedClient, stopper chan struct{}) {
 			}(obj)
 		},
 		UpdateFunc: func(oldObj, newObj interface{}) {
-			fmt.Println("JE SUIS DANS UPDATE??????")
 			go func(oldObj, newObj interface{}) {
 				service := newObj.(*corev1.Service)
 				reqLogger := serviceWatcherLogger.WithValues("service", service.Name, "namespace", service.Namespace)
@@ -104,7 +103,6 @@ func serviceWatch(k8sClient utils.ExtendedClient, stopper chan struct{}) {
 			}(oldObj, newObj)
 		},
 		DeleteFunc: func(obj interface{}) {
-			fmt.Println("JE SUIS DANS DELETE??????")
 			go func(obj interface{}) {
 				service := obj.(*corev1.Service)
 				reqLogger := serviceWatcherLogger.WithValues("service", service.Name, "namespace", service.Namespace)
