@@ -17,22 +17,21 @@ limitations under the License.
 package main
 
 import (
-//	"flag"
+	"flag"
 	"github.com/beopencloud/network-watcher/watchers"
-//	"os"
+	"os"
 
 	"k8s.io/apimachinery/pkg/runtime"
 	utilruntime "k8s.io/apimachinery/pkg/util/runtime"
 	clientgoscheme "k8s.io/client-go/kubernetes/scheme"
 	_ "k8s.io/client-go/plugin/pkg/client/auth/gcp"
 	ctrl "sigs.k8s.io/controller-runtime"
-//	"sigs.k8s.io/controller-runtime/pkg/log/zap"
-	// +kubebuilder:scaffold:imports
-//	"log"
-"github.com/beopencloud/network-watcher/utils"
-"k8s.io/client-go/rest"
-"k8s.io/client-go/tools/clientcmd"
-"log"
+	"sigs.k8s.io/controller-runtime/pkg/log/zap"
+	//	 +kubebuilder:scaffold:imports
+	//"github.com/beopencloud/network-watcher/utils"
+	//"k8s.io/client-go/rest"
+	//"k8s.io/client-go/tools/clientcmd"
+	"log"
 )
 
 var (
@@ -50,19 +49,17 @@ func init() {
 	// +kubebuilder:rbac:groups=extensions,resources=ingresses,verbs=get;list;watch;create;update;delete
 }
 
-
 // +
 // Le code de base de l'operator a ete generer par l'operator sdk.
 // Y'a juste le dockerfile et la fonction main qui ont ete un peu modifier et
 // les packages watchers et utils qui on été entièrement implementer.
 // +
 func main() {
-	kubeconf,_ := restConfig()
+	//	kubeconf,_ := restConfig()
 
-	/*
 	var metricsAddr string
 	var enableLeaderElection bool
-	flag.StringVar(&metricsAddr, "metrics-addr", ":8080", "The address the metric endpoint binds to.")
+	flag.StringVar(&metricsAddr, "metrics-addr", ":8089", "The address the metric endpoint binds to.")
 	flag.BoolVar(&enableLeaderElection, "enable-leader-election", false,
 		"Enable leader election for controller manager. "+
 			"Enabling this will ensure there is only one active controller manager.")
@@ -78,10 +75,10 @@ func main() {
 		LeaderElectionID:   "618544d0.beopenit.com",
 	})
 	if err != nil {
+		log.Println("Erro????", err)
 		setupLog.Error(err, "unable to start manager")
 		os.Exit(1)
 	}
-	*/
 
 	// ++
 	// +
@@ -90,18 +87,18 @@ func main() {
 	// cette instruction est la seule ajouter au niveau de la fonction main. le reste est generer par l'operator sdk
 	// +
 	// ++
-	 watchers.Watch(kubeconf)
+	watchers.Watch(mgr.GetConfig())
 
-/*
 	// +kubebuilder:scaffold:builder
 	setupLog.Info("starting manager")
 	if err := mgr.Start(ctrl.SetupSignalHandler()); err != nil {
 		setupLog.Error(err, "problem running manager")
 		os.Exit(1)
 	}
-	*/
+
 }
 
+/*
 func restConfig() (*rest.Config, error) {
 	cfg, err := clientcmd.BuildConfigFromFlags("", utils.KUBECONFIG)
 	if err != nil {
@@ -110,3 +107,4 @@ func restConfig() (*rest.Config, error) {
 	}
 	return cfg, nil
 }
+*/

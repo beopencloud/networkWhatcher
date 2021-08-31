@@ -3,27 +3,17 @@
 apiVersion: v1
 kind: ServiceAccount
 metadata:
-  name: network-watcher
+  name: service-account-network-watcher
   namespace: operator
+---
 
----
-# Credentials to authicate to the api-mock
-apiVersion: v1
-kind: Secret
-metadata:
-  name: secret-mock
-type: Opaque
-data:
-  username: bW9kb3U=
-  password: dGVzdA==
-  url-ingress: aHR0cDovL25ldHdvcmstd2F0Y2hlci1hcGktbW9jay5vcGVyYXRvci5zdmMuY2x1c3Rlci5sb2NhbC9pbmdyZXNzLw==
-  url-service: aHR0cDovL25ldHdvcmstd2F0Y2hlci1hcGktbW9jay5vcGVyYXRvci5zdmMuY2x1c3Rlci5sb2NhbC9zZXJ2aWNlLw==
----
+
 
 apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: network-watcher
+  namespace: operator
 spec:
   replicas: 1
   selector:
@@ -34,52 +24,44 @@ spec:
       labels:
         name: network-watcher
     spec:
-      serviceAccountName: network-watcher
+      serviceAccountName: service-account-network-watcher
       containers:
       - name: network-watcher
-        image: beopenit/network-watcher:latest
+        image: smodou/network-watcher:latest
         imagePullPolicy: Always
         env:
         - name: WATCH_NAMESPACE
           value: ""
         - name: SERVICE_CREATE_EVENT_URL
-          value: "http://network-watcher-api-mock.operator.svc.cluster.local/service/post"
+          value: "http://service-network-watcher-mock.operator.svc.cluster.local/service/post"
         - name: SERVICE_UPDATE_EVENT_URL
-          value: "http://network-watcher-api-mock.operator.svc.cluster.local/service/put"
+          value: "http://service-network-watcher-mock.operator.svc.cluster.local/service/put"
         - name: SERVICE_DELETE_EVENT_URL
-          value: "http://network-watcher-api-mock.operator.svc.cluster.local/service/delete"
-        - name: INGRESS_CREATE_EVENT_URL
-          value: "http://network-watcher-api-mock.operator.svc.cluster.local/service/post"
-        - name: INGRESS_UPDATE_EVENT_URL
-          value: "http://network-watcher-api-mock.operator.svc.cluster.local/service/put"
-        - name: INGRESS_DELETE_EVENT_URL
-          value: "http://network-watcher-api-mock.operator.svc.cluster.local/service/delete"
+          value: "http://service-network-watcher-mock.operator.svc.cluster.local/service/delete"
+        - name: IN_CLUSTER 
+          value: "true" 
         - name: POD_NAME
           valueFrom:
             fieldRef:
               fieldPath: metadata.name
         - name: OPERATOR_NAME
           value: "network-watcher"
-        - name: "SECRET_USERNAME"
+        - name: "USERNAME"
           valueFrom:
             secretKeyRef:
               name: secret-mock
               key: username
-        - name: "SECRET_PASSWORD"
+        - name: "PASSWORD"
           valueFrom:
             secretKeyRef:
               name: secret-mock
               key: password
-        - name: "URL_INGRESS"
-          valueFrom:
-            secretKeyRef:
-              name: secret-mock
-              key: url-ingress
         - name: "URL_SERVICE"
           valueFrom:
             secretKeyRef:
               name: secret-mock
               key: url-service
+
       
       
 ---
@@ -175,6 +157,14 @@ rules:
   - list
   - update
   - watch
+- apiGroups:
+  - ""
+  resources:
+  - secrets
+  verbs:
+  - get
+  - list
+  - watch
 
 ---
 
@@ -188,7 +178,7 @@ roleRef:
   name: network-watcher
 subjects:
 - kind: ServiceAccount
-  name: network-watcher
+  name: service-account-network-watcher
   namespace: operator
 
 ---
@@ -226,6 +216,14 @@ rules:
   verbs:
   - create
   - patch
+- apiGroups:
+  - ""
+  resources:
+  - secrets
+  verbs:
+  - get
+  - list
+  - watch
 
 ---
 
@@ -239,10 +237,22 @@ roleRef:
   name: network-watcher-leader-election-role
 subjects:
 - kind: ServiceAccount
-  name: network-watcher
+  name: service-account-network-watcher
   namespace: operator
 
-
-
 ---
+
+# Credentials to authicate to the api-mock
+apiVersion: v1
+kind: Secret
+metadata:
+  name: secret-mock
+  namespace: operator
+type: Opaque
+data:
+  username: bW9kb3U=
+  password: dGVzdA==
+  url-service: MTAuMjQ0LjAuMTg2OjMxMDE1L3NlcnZpY2UvcG9zdAo=
+---
+
 

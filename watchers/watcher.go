@@ -10,7 +10,6 @@ import (
 
 var stopper chan struct{}
 
-
 // +
 // cette fonction est le point d'entrée du package watcher.
 // c'est ici q'on initialise le client_go de kubernetes qu'on passe en parametre au watchers service et ingress
@@ -24,7 +23,7 @@ func Watch(restConfig *rest.Config) {
 	if stopper != nil {
 		close(stopper)
 	}
-    serviceWatch(k8sClient, stopper)
+	serviceWatch(k8sClient, stopper)
 
 }
 
