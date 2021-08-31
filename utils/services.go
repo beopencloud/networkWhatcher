@@ -2,6 +2,9 @@ package utils
 
 import (
 	"context"
+	"errors"
+	"fmt"
+	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/dynamic"
 	"k8s.io/client-go/kubernetes"
@@ -38,4 +41,26 @@ func CheckNamespaceAutoGen(k8sClient ExtendedClient, namespaceName string) (bool
 		}
 	}
 	return watch, nil
+}
+
+func SetLoabBalancerIP(k8sClient ExtendedClient, service *corev1.Service, ip string) error {
+	service.Spec.LoadBalancerIP = ip
+	_, err := k8sClient.CoreV1().Services(service.Namespace).Update(context.TODO(), service, metav1.UpdateOptions{})
+	fmt.Println("ERROR", err)
+	return err
+}
+
+func GetNamespaceIP(k8sClient ExtendedClient, namespaceName string) (string, error) {
+	namespace, err := k8sClient.CoreV1().Namespaces().Get(context.TODO(), namespaceName, metav1.GetOptions{})
+	if err != nil {
+		log.Println("Error when getting namespace: ", err.Error())
+		return "", err
+	}
+
+	for key, value := range namespace.Labels {
+		if key == "watching/namespaceIp" {
+			return value, nil
+		}
+	}
+	return "", errors.New("Namespace IP Not Found ")
 }

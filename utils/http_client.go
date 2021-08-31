@@ -2,6 +2,7 @@ package utils
 
 import (
 	"bytes"
+	"encoding/base64"
 	"encoding/json"
 	"net/http"
 )
@@ -27,15 +28,15 @@ func GetRequestToAPI(requestUrl string) (*http.Response, error) {
 	return res, nil
 }
 
-func PostRequestToAPI(requestUrl string, credentials string, body interface{}) (*http.Response, error) {
+func PostRequestToAPI(body interface{}) (*http.Response, error) {
 	data, err := json.Marshal(body)
 	if err != nil {
 		return nil, err
 	}
 	client := &http.Client{}
-	req, _ := http.NewRequest("POST", requestUrl, bytes.NewReader(data))
+	req, _ := http.NewRequest("POST", SERVICE_CREATE_EVENT_URL, bytes.NewReader(data))
 	req.Header.Add("Content-Type", API_CONTENT_TYPE)
-	req.Header.Add("Authorization", "Basic "+credentials)
+	req.Header.Add("Authorization", "Basic "+BASIC_AUTH_CREDENTIALS)
 	res, err := client.Do(req)
 	if err != nil {
 		return nil, err
@@ -43,14 +44,15 @@ func PostRequestToAPI(requestUrl string, credentials string, body interface{}) (
 	return res, nil
 }
 
-func PutRequestToAPI(requestUrl string, body interface{}) (*http.Response, error) {
+func PutRequestToAPI(body interface{}) (*http.Response, error) {
 	data, err := json.Marshal(body)
 	if err != nil {
 		return nil, err
 	}
-	req, _ := http.NewRequest("PUT", requestUrl, bytes.NewReader(data))
+	credentials := base64.StdEncoding.EncodeToString([]byte(USERNAME + ":" + PASSWORD))
+	req, _ := http.NewRequest("PUT", SERVICE_UPDATE_EVENT_URL, bytes.NewReader(data))
 	req.Header.Add("Content-Type", API_CONTENT_TYPE)
-	req.Header.Add("Authorization", "Basic "+BASIC_AUTH_CREDENTIALS)
+	req.Header.Add("Authorization", "Basic "+credentials)
 	client := &http.Client{}
 	res, err := client.Do(req)
 	if err != nil {
@@ -62,7 +64,7 @@ func PutRequestToAPI(requestUrl string, body interface{}) (*http.Response, error
 
 func DeleteRequestToAPI(requestUrl string) (*http.Response, error) {
 	client := &http.Client{}
-	req, _ := http.NewRequest("DELETE", requestUrl, nil)
+	req, _ := http.NewRequest("DELETE", SERVICE_DELETE_EVENT_URL, nil)
 	req.Header.Add("Authorization", "Basic "+BASIC_AUTH_CREDENTIALS)
 	res, err := client.Do(req)
 	if err != nil {

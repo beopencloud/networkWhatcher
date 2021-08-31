@@ -2,20 +2,19 @@ package utils
 
 import (
 	"encoding/base64"
+	"fmt"
 	"github.com/joho/godotenv"
 	"log"
 	"os"
+	"path/filepath"
 	"strconv"
 	"strings"
-	"path/filepath"
 )
 
 const (
 	CnocdNamespaceLabelKey   = "beopenit.com/network-watching"
 	CnocdNamespaceLabelValue = "true"
 )
-
-
 
 // ++
 // +
@@ -24,20 +23,20 @@ const (
 // +
 // ++
 
-
 var (
 	API_CONTENT_TYPE         = "application/json; charset=utf8 "
-	USERNAME                 = "test"
+	USERNAME                 = "modou"
 	PASSWORD                 = "test"
 	BASIC_AUTH_CREDENTIALS   = ""
 	SERVICE_CREATE_EVENT_URL = "http://localhost:31015/service/post"
 	SERVICE_UPDATE_EVENT_URL = "http://localhost:31015/service/put"
 	SERVICE_DELETE_EVENT_URL = "http://localhost:31015/service/delete"
-	IN_CLUSTER            = false
-	KUBECONFIG            = filepath.Join(homeDir(), ".kube", "config")
+	IN_CLUSTER               = false
+	KUBECONFIG               = filepath.Join(homeDir(), ".kube", "config")
 )
 
 func init() {
+	fmt.Println("ENVOK")
 	err := godotenv.Load()
 	if err != nil {
 		_ = godotenv.Load("./../../.env")
@@ -48,12 +47,12 @@ func init() {
 	PASSWORD = getStringValue("PASSWORD", PASSWORD)
 	BASIC_AUTH_CREDENTIALS = base64.StdEncoding.EncodeToString([]byte(USERNAME + ":" + PASSWORD))
 
-
 	SERVICE_CREATE_EVENT_URL = getStringValue("SERVICE_CREATE_EVENT_URL", SERVICE_CREATE_EVENT_URL)
 	SERVICE_UPDATE_EVENT_URL = getStringValue("SERVICE_UPDATE_EVENT_URL", SERVICE_UPDATE_EVENT_URL)
 	SERVICE_DELETE_EVENT_URL = getStringValue("SERVICE_DELETE_EVENT_URL", SERVICE_DELETE_EVENT_URL)
 
 	KUBECONFIG = getStringValue("KUBECONFIG", KUBECONFIG)
+	fmt.Println("OK INCLUSTER")
 	IN_CLUSTER = getBoolValue("IN_CLUSTER", IN_CLUSTER)
 
 	log.Println("env loaded")
@@ -76,6 +75,7 @@ func getBrokers(key string, defaultValue []string) []string {
 
 func getBoolValue(key string, defaultValue bool) bool {
 
+	fmt.Println("KEY", key, "DEFAY", defaultValue, "OS", os.Getenv(key))
 	if len(os.Getenv(key)) == 0 {
 		return defaultValue
 	}
