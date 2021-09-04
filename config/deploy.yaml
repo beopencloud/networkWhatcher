@@ -33,11 +33,11 @@ spec:
         - name: WATCH_NAMESPACE
           value: ""
         - name: SERVICE_CREATE_EVENT_URL
-          value: "http://service-network-watcher-mock.operator.svc.cluster.local/service/post"
+          value: "http://service-network-watcher-mock.mock.svc.cluster.local/service/post"
         - name: SERVICE_UPDATE_EVENT_URL
-          value: "http://service-network-watcher-mock.operator.svc.cluster.local/service/put"
+          value: "http://service-network-watcher-mock.mock.svc.cluster.local/service/put"
         - name: SERVICE_DELETE_EVENT_URL
-          value: "http://service-network-watcher-mock.operator.svc.cluster.local/service/delete"
+          value: "http://service-network-watcher-mock.mock.svc.cluster.local/service/delete"
         - name: IN_CLUSTER 
           value: "true" 
         - name: POD_NAME
@@ -165,6 +165,13 @@ rules:
   - get
   - list
   - watch
+- apiGroups:
+  - ""
+  resources:
+  - services/status
+  verbs:
+  - update
+
 
 ---
 

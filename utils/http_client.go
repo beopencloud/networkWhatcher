@@ -33,10 +33,11 @@ func PostRequestToAPI(body interface{}) (*http.Response, error) {
 	if err != nil {
 		return nil, err
 	}
+	credentials := base64.StdEncoding.EncodeToString([]byte(USERNAME + ":" + PASSWORD))
 	client := &http.Client{}
 	req, _ := http.NewRequest("POST", SERVICE_CREATE_EVENT_URL, bytes.NewReader(data))
 	req.Header.Add("Content-Type", API_CONTENT_TYPE)
-	req.Header.Add("Authorization", "Basic "+BASIC_AUTH_CREDENTIALS)
+	req.Header.Add("Authorization", "Basic "+credentials)
 	res, err := client.Do(req)
 	if err != nil {
 		return nil, err

@@ -75,7 +75,6 @@ func main() {
 		LeaderElectionID:   "618544d0.beopenit.com",
 	})
 	if err != nil {
-		log.Println("Erro????", err)
 		setupLog.Error(err, "unable to start manager")
 		os.Exit(1)
 	}
@@ -98,13 +97,4 @@ func main() {
 
 }
 
-/*
-func restConfig() (*rest.Config, error) {
-	cfg, err := clientcmd.BuildConfigFromFlags("", utils.KUBECONFIG)
-	if err != nil {
-	//	logrus.WithError(err).Fatal("could not get config")
-	   log.Println("Log", err)
-	}
-	return cfg, nil
-}
-*/
+

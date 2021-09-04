@@ -41,22 +41,21 @@ func serviceWatch(k8sClient utils.ExtendedClient, stopper chan struct{}) {
 				if !watch || err != nil {
 					return
 				}
-	
-					ip, err := utils.GetNamespaceIP(k8sClient, service.Namespace)
-					if err != nil {
-						fmt.Println("Error", err)
-						return
-					}
-					err = utils.SetLoabBalancerIP(k8sClient, service, ip)
-					if err != nil {
-						fmt.Println("Error", err)
-						return
-					}
-				
+
+				ip, err := utils.GetNamespaceIP(k8sClient, service.Namespace)
+				if err != nil {
+					fmt.Println("Error", err)
+					return
+				}
+				err = utils.SetLoabBalancerIP(k8sClient, service, ip)
+				if err != nil {
+					fmt.Println("Error", err)
+					return
+				}
 
 				res, err := utils.PostRequestToAPI(service)
 				if err != nil {
-					reqLogger.Error(err, "Error to send service create event to API")
+					fmt.Println("Error Post TO API", err)
 					return
 				}
 				if res.StatusCode != http.StatusOK && res.StatusCode != http.StatusCreated {
@@ -75,18 +74,17 @@ func serviceWatch(k8sClient utils.ExtendedClient, stopper chan struct{}) {
 				if !watch || err != nil {
 					return
 				}
-				/*
-					ip, err := utils.GetNamespaceIP(k8sClient, service.Namespace)
-					if err != nil {
-						fmt.Println("Error", err)
-						return
-					}
-					err = utils.SetLoabBalancerIP(k8sClient, service, ip)
-					if err != nil {
-						fmt.Println("Error", err)
-						return
-					}
-				*/
+
+				ip, err := utils.GetNamespaceIP(k8sClient, service.Namespace)
+				if err != nil {
+					fmt.Println("Error", err)
+					return
+				}
+				err = utils.SetLoabBalancerIP(k8sClient, service, ip)
+				if err != nil {
+					fmt.Println("Error", err)
+					return
+				}
 
 				res, err := utils.PutRequestToAPI(service)
 				if err != nil {
