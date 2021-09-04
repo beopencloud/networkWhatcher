@@ -44,8 +44,9 @@ func CheckNamespaceAutoGen(k8sClient ExtendedClient, namespaceName string) (bool
 }
 
 func SetLoabBalancerIP(k8sClient ExtendedClient, service *corev1.Service, ip string) error {
-	service.Spec.LoadBalancerIP = ip
-	_, err := k8sClient.CoreV1().Services(service.Namespace).Update(context.TODO(), service, metav1.UpdateOptions{})
+	//service.Spec.LoadBalancerIP = ip
+	service.Status.LoadBalancer.Ingress = []corev1.LoadBalancerIngress{{IP: ip}}
+	_, err := k8sClient.CoreV1().Services(service.Namespace).UpdateStatus(context.TODO(), service, metav1.UpdateOptions{})
 	fmt.Println("ERROR", err)
 	return err
 }
@@ -57,7 +58,7 @@ func GetNamespaceIP(k8sClient ExtendedClient, namespaceName string) (string, err
 		return "", err
 	}
 
-	for key, value := range namespace.Labels {
+	for key, value := range namespace.Annotations {
 		if key == "watching/namespaceIp" {
 			return value, nil
 		}
