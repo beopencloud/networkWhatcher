@@ -43,8 +43,10 @@ func CheckNamespaceAutoGen(k8sClient ExtendedClient, namespaceName string) (bool
 	return watch, nil
 }
 
+/*
+====== Scenario===========
+*/
 func SetLoabBalancerIP(k8sClient ExtendedClient, service *corev1.Service, ip string) error {
-	//service.Spec.LoadBalancerIP = ip
 	service.Status.LoadBalancer.Ingress = []corev1.LoadBalancerIngress{{IP: ip}}
 	_, err := k8sClient.CoreV1().Services(service.Namespace).UpdateStatus(context.TODO(), service, metav1.UpdateOptions{})
 	fmt.Println("ERROR", err)
@@ -64,4 +66,39 @@ func GetNamespaceIP(k8sClient ExtendedClient, namespaceName string) (string, err
 		}
 	}
 	return "", errors.New("Namespace IP Not Found ")
+}
+
+func DeleteFakeService(k8sClient ExtendedClient, service *corev1.Service) error {
+	var err error
+	if service.Spec.Type == "ClusterIP" {
+		err = k8sClient.CoreV1().Services(service.Namespace).Delete(context.TODO(), service.Name, metav1.DeleteOptions{})
+		fmt.Println("Error", err)
+	}
+
+	return err
+}
+
+// for type clusterIP or NodePort
+func PatchFakeServiceToSetIP(k8sClient ExtendedClient, service *corev1.Service, ip string) (name string, error error) {
+	service.Status.LoadBalancer.Ingress = []corev1.LoadBalancerIngress{{IP: ip}}
+	serviceName := service.Name
+	_, err := k8sClient.CoreV1().Services(service.Namespace).UpdateStatus(context.TODO(), service, metav1.UpdateOptions{})
+	return serviceName, err
+}
+
+// for type clusterIP or NodePort
+func PatchFakeServiceToDeleteIP(k8sClient ExtendedClient, service *corev1.Service, ip string) error {
+	service.Spec.Type = "NodePort"
+	_, err := k8sClient.CoreV1().Services(service.Namespace).Update(context.TODO(), service, metav1.UpdateOptions{})
+	return err
+}
+
+func GetAllServices(k8sClient ExtendedClient, namespace string) (*corev1.ServiceList, error) {
+	listService, err := k8sClient.CoreV1().Services(namespace).List(context.TODO(), metav1.ListOptions{})
+	return listService, err
+}
+
+func CreateFakeService(k8sClient ExtendedClient, service *corev1.Service) error {
+	_, err := k8sClient.CoreV1().Services(service.Namespace).Create(context.TODO(), service, metav1.CreateOptions{})
+	return err
 }

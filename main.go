@@ -31,7 +31,6 @@ import (
 	//"github.com/beopencloud/network-watcher/utils"
 	//"k8s.io/client-go/rest"
 	//"k8s.io/client-go/tools/clientcmd"
-	"log"
 )
 
 var (
@@ -96,5 +95,3 @@ func main() {
 	}
 
 }
-
-
