@@ -23,7 +23,7 @@ type ExtendedClient struct {
 // ++
 // +
 // Cette fonction permet de verifier si un namespace est monitoré ou pas par l'operator.
-// Pour qu'un namespace soit monitoré par l'operator, il faut qu'il ait le label beopenit.com/network-watching=true.
+// Pour qu'un namespace soit monitoré par l'operator, il faut qu'il ait le label intrabpce.fr/network-watching=true.
 // Si le namespace n'a pas le label, les events create,update, delete service|ingress seront ignoré.
 // +
 // ++
