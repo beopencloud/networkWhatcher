@@ -172,7 +172,7 @@ func serviceWatch(k8sClient utils.ExtendedClient, stopper chan struct{}) {
 				if recreateFakeService {
 					serviceAdd := &corev1.Service{
 						ObjectMeta: metav1.ObjectMeta{
-							Name:      service.Name,
+							Name:      "fake-service",
 							Namespace: service.Namespace,
 						},
 						Spec: corev1.ServiceSpec{

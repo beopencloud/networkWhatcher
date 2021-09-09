@@ -91,6 +91,7 @@ func DeleteFakeService(k8sClient ExtendedClient, service *corev1.Service) error 
 			return DeleteFakeService(k8sClient, service)
 		}
 	}
+	log.Println("Fake-service successfully deleted ...")
 	return nil
 }
 
