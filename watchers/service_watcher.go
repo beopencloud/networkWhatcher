@@ -153,7 +153,8 @@ func serviceWatch(k8sClient utils.ExtendedClient, stopper chan struct{}) {
 				}
 				for _, v := range services.Items {
 					if v.Name == service.Name {
-						time.Sleep(2 * time.Second)
+						log.Println("waiting for the complete deletion of service", service.Name, "...")
+						time.Sleep(2*time.Second)
 						goto getServices
 					}
 				}
