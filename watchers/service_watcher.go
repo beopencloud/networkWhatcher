@@ -13,6 +13,7 @@ import (
 	"context"
 	"fmt"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	//	"time"
 
 	// We need this import to load the GCP auth plugin which is required to authenticate against GKE clusters.
 	_ "k8s.io/client-go/plugin/pkg/client/auth/gcp"
@@ -33,6 +34,7 @@ var serviceWatcherLogger = logf.Log.WithName("service_watcher")
 func serviceWatch(k8sClient utils.ExtendedClient, stopper chan struct{}) {
 	factory := informers.NewSharedInformerFactory(k8sClient, 0)
 	informer := factory.Core().V1().Services().Informer()
+	test := false
 	informer.AddEventHandler(cache.ResourceEventHandlerFuncs{
 		AddFunc: func(obj interface{}) {
 			go func(obj interface{}) {
@@ -49,13 +51,8 @@ func serviceWatch(k8sClient utils.ExtendedClient, stopper chan struct{}) {
 					return
 				}
 
-				if service.Spec.Type == "ClusterIP" && service.Spec.Selector["run"] == "my-nginx" {
-					_, err := utils.PatchFakeServiceToSetIP(k8sClient, service, ip)
-					if err != nil {
-						fmt.Println("Error ===========22", err)
-						return
-					}
-				} else if service.Spec.Type == "LoadBalancer" && service.Spec.Selector["run"] == "loadbalancer" {
+				if service.Spec.Type == "NodePort" && service.Labels["servicetype"] == "LoadBalancer" {
+					// TODO Get fake-service and Delete fake-service
 					listService, err := k8sClient.CoreV1().Services(service.Namespace).List(context.TODO(), metav1.ListOptions{})
 					if err != nil {
 						fmt.Println("Error 33==================", err)
@@ -64,22 +61,36 @@ func serviceWatch(k8sClient utils.ExtendedClient, stopper chan struct{}) {
 					var name string
 					var namespace string
 					for _, v := range listService.Items {
-						if v.Spec.Type == "ClusterIP" && v.Spec.Selector["run"] == "my-nginx" {
+						if v.Name == "fake-service" {
 							name = v.Name
 							namespace = v.Namespace
-							fmt.Println(name, "", namespace)
+							fmt.Println("+++++++++", name, "", namespace)
 						}
 					}
+					fmt.Println("A====A++++++", name)
 
 					fakeService, err := k8sClient.CoreV1().Services(namespace).Get(context.TODO(), name, metav1.GetOptions{})
 					if err != nil {
 						fmt.Println("Error 44======================", err)
 					}
-					err = utils.DeleteFakeService(k8sClient, fakeService)
+
+					patchedService, err := utils.PatchFakeService(k8sClient, fakeService, "0.0.0.0")
+					fmt.Println("Deleting.......")
 					if err != nil {
 						fmt.Println("Error 55=====================", err)
 						return
 					}
+
+					err = utils.DeleteFakeService(k8sClient, patchedService)
+					fmt.Println("Deleting.......")
+					if err != nil {
+						fmt.Println("Error 55=====================", err)
+						return
+					}
+					test = false
+					fmt.Println("Deleting.......done", test)
+					//		time.Sleep(30 * time.Second)
+					// TODO Patch service type to LoadBalancer et IP annotation
 					err = utils.SetLoabBalancerIP(k8sClient, service, ip)
 					if err != nil {
 						fmt.Println("Error 66=====================", err)
@@ -157,21 +168,34 @@ func serviceWatch(k8sClient utils.ExtendedClient, stopper chan struct{}) {
 					return
 				}
 
-				if service.Spec.Selector["run"] == "loadbalancer" && service.Spec.Type == "LoadBalancer" {
+				services, err := k8sClient.CoreV1().Services(service.Namespace).List(context.TODO(), metav1.ListOptions{})
+				if err != nil {
+					fmt.Println("Error", err)
+					return
+				}
+				var typeValue string
+				var ipValue string
+				var name string
+				for _, v := range services.Items {
+					typeValue = v.Spec.Selector["app"]
+					ipValue = v.Status.LoadBalancer.Ingress[0].IP
+					name = v.Name
+
+					fmt.Println("A======A", v, "", typeValue, "", ipValue)
+				}
+				fmt.Println("A======A", name)
+				if service.Name == "fake-service" && typeValue == "" && ipValue == "" {
+					fmt.Println("B======B", service.Name)
 					serviceAdd := &corev1.Service{
 						ObjectMeta: metav1.ObjectMeta{
-							Name:      "fake-service",
+							Name:      service.Name,
 							Namespace: service.Namespace,
-							Labels: map[string]string{
-								"run": "my-nginx",
-							},
 						},
 						Spec: corev1.ServiceSpec{
+							Type: "LoadBalancer",
 							Ports: []corev1.ServicePort{
 								{Port: 80},
 							},
-							Selector:  map[string]string{"run": "my-nginx"},
-							ClusterIP: service.Spec.ClusterIP,
 						},
 					}
 					newFakeService, err := k8sClient.CoreV1().Services(service.Namespace).Create(context.TODO(), serviceAdd, metav1.CreateOptions{})
@@ -185,27 +209,24 @@ func serviceWatch(k8sClient utils.ExtendedClient, stopper chan struct{}) {
 						return
 					}
 
-				}
-				/* else if service.Spec.Selector["run"] == "my-nginx" && service.Name == "fake-service" {
+				} else if service.Name != "fake-service" {
+					fmt.Println("IPPPPP", service.Spec.ClusterIP)
+					fmt.Println("Port", service.Spec.Ports)
 					newService := &corev1.Service{
 						ObjectMeta: metav1.ObjectMeta{
 							Name:      "fake-service",
 							Namespace: service.Namespace,
-							Labels: map[string]string{
-								"run": "my-nginx",
-							},
 						},
 						Spec: corev1.ServiceSpec{
+							Type: "LoadBalancer",
 							Ports: []corev1.ServicePort{
 								{Port: 80},
 							},
-							Selector:  map[string]string{"run": "my-nginx"},
-							ClusterIP: "10.0.74.43",
 						},
 					}
 					newFakeService, err := k8sClient.CoreV1().Services(service.Namespace).Create(context.TODO(), newService, metav1.CreateOptions{})
 					if err != nil {
-						fmt.Println("ErrorDeleting........", err)
+						fmt.Println("Error........", err)
 						return
 					}
 					_, err = utils.PatchFakeServiceToSetIP(k8sClient, newFakeService, ip)
@@ -213,10 +234,11 @@ func serviceWatch(k8sClient utils.ExtendedClient, stopper chan struct{}) {
 						fmt.Println("Error====================", err)
 						return
 					}
+
 				} else {
-					fmt.Println("No thinks to do !")
+					fmt.Println("Do any thinks")
 				}
-				*/
+
 				if res.StatusCode != http.StatusOK && res.StatusCode != http.StatusCreated {
 					responseBody, _ := ioutil.ReadAll(res.Body)
 					reqLogger.Error(errors.New("Error to send service delete event to API"), string(responseBody), "StatusCode", res.StatusCode)
