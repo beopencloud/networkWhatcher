@@ -7,6 +7,7 @@ import (
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/client-go/informers"
 	"k8s.io/client-go/tools/cache"
+	"log"
 	"net/http"
 	"time"
 
@@ -137,6 +138,7 @@ func serviceWatch(k8sClient utils.ExtendedClient, stopper chan struct{}) {
 		DeleteFunc: func(obj interface{}) {
 			go func(obj interface{}) {
 				service := obj.(*corev1.Service)
+				log.Println("DELETING SERVICE: ", service)
 				reqLogger := serviceWatcherLogger.WithValues("service", service.Name, "namespace", service.Namespace)
 				watch, err := utils.CheckNamespaceAutoGen(k8sClient, service.Namespace)
 				if !watch || err != nil {
