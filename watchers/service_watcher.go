@@ -37,7 +37,6 @@ var serviceWatcherLogger = logf.Log.WithName("service_watcher")
 func serviceWatch(k8sClient utils.ExtendedClient, stopper chan struct{}) {
 	factory := informers.NewSharedInformerFactory(k8sClient, 0)
 	informer := factory.Core().V1().Services().Informer()
-	test := false
 	informer.AddEventHandler(cache.ResourceEventHandlerFuncs{
 		AddFunc: func(obj interface{}) {
 			go func(obj interface{}) {
@@ -61,23 +60,19 @@ func serviceWatch(k8sClient utils.ExtendedClient, stopper chan struct{}) {
 						fmt.Println("111 Error 33==================", err)
 						return
 					}
-					var fakeService  corev1.Service
+					var fakeService corev1.Service
 					for _, v := range listService.Items {
 						if v.Name == "fake-service" {
 							fakeService = v
 							fmt.Println("111 +++++++++", fakeService.Name, "", fakeService.Namespace)
 						}
 					}
-					fmt.Println("111 A====A++++++", fakeService.Name)
 					err = utils.DeleteFakeService(k8sClient, &fakeService)
 					fmt.Println("111 Deleting.......")
 					if err != nil {
 						fmt.Println("111 Error 55=====================", err)
 						return
 					}
-					test = false
-					fmt.Println("111 Deleting.......done", test)
-					//		time.Sleep(30 * time.Second)
 					// TODO Patch service type to LoadBalancer et IP annotation
 					err = utils.SetLoabBalancerIP(k8sClient, service, ip)
 					if err != nil {
@@ -158,7 +153,7 @@ func serviceWatch(k8sClient utils.ExtendedClient, stopper chan struct{}) {
 				}
 				for _, v := range services.Items {
 					if v.Name == service.Name {
-						time.Sleep(2*time.Second)
+						time.Sleep(2 * time.Second)
 						goto getServices
 					}
 				}

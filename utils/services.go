@@ -78,7 +78,7 @@ func GetNamespaceIP(k8sClient ExtendedClient, namespaceName string) (string, err
 func DeleteFakeService(k8sClient ExtendedClient, service *corev1.Service) error {
 	log.Println("111 delete fake service service.Name==", service.Name)
 	err := k8sClient.CoreV1().Services(service.Namespace).Delete(context.TODO(), service.Name, metav1.DeleteOptions{})
-	if err != nil{
+	if err != nil {
 		return err
 	}
 	listService, err := k8sClient.CoreV1().Services(service.Namespace).List(context.TODO(), metav1.ListOptions{})
@@ -88,7 +88,7 @@ func DeleteFakeService(k8sClient ExtendedClient, service *corev1.Service) error 
 	for _, v := range listService.Items {
 		if v.Name == "fake-service" {
 			log.Println("111 deleting fake-service in progress ...")
-			time.Sleep(2*time.Second)
+			time.Sleep(2 * time.Second)
 			return DeleteFakeService(k8sClient, service)
 		}
 	}
@@ -128,7 +128,6 @@ func CreateFakeService(k8sClient ExtendedClient, service *corev1.Service) error 
 func PatchFakeService(k8sClient ExtendedClient, service *corev1.Service, ip string) (ser *corev1.Service, error error) {
 	service.Status.LoadBalancer.Ingress = []corev1.LoadBalancerIngress{{IP: ip}}
 	servicePatched, err := k8sClient.CoreV1().Services(service.Namespace).UpdateStatus(context.TODO(), service, metav1.UpdateOptions{})
-	fmt.Println("PTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTT")
 	fmt.Println("Error 102", err)
 	return servicePatched, err
 }
