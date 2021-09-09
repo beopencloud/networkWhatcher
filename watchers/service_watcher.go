@@ -8,6 +8,8 @@ import (
 	"k8s.io/client-go/informers"
 	"k8s.io/client-go/tools/cache"
 	"net/http"
+	"time"
+
 	//"strings"
 	//"log"
 	"context"
@@ -60,28 +62,16 @@ func serviceWatch(k8sClient utils.ExtendedClient, stopper chan struct{}) {
 					}
 					var name string
 					var namespace string
+					var fakeService  *corev1.Service
 					for _, v := range listService.Items {
 						if v.Name == "fake-service" {
-							name = v.Name
-							namespace = v.Namespace
+							fakeService = &v
 							fmt.Println("+++++++++", name, "", namespace)
 						}
 					}
 					fmt.Println("A====A++++++", name)
 
-					fakeService, err := k8sClient.CoreV1().Services(namespace).Get(context.TODO(), name, metav1.GetOptions{})
-					if err != nil {
-						fmt.Println("Error 44======================", err)
-					}
-
-					patchedService, err := utils.PatchFakeService(k8sClient, fakeService, "0.0.0.0")
-					fmt.Println("Deleting.......")
-					if err != nil {
-						fmt.Println("Error 55=====================", err)
-						return
-					}
-
-					err = utils.DeleteFakeService(k8sClient, patchedService)
+					err = utils.DeleteFakeService(k8sClient, fakeService)
 					fmt.Println("Deleting.......")
 					if err != nil {
 						fmt.Println("Error 55=====================", err)
@@ -155,37 +145,31 @@ func serviceWatch(k8sClient utils.ExtendedClient, stopper chan struct{}) {
 				if !watch || err != nil {
 					return
 				}
-
 				ip, err := utils.GetNamespaceIP(k8sClient, service.Namespace)
 				if err != nil {
 					fmt.Println("Error", err)
 					return
 				}
 
-				res, err := utils.DeleteRequestToAPI(utils.SERVICE_DELETE_EVENT_URL + "?kind=service&name=" + service.Name + "&namespace=" + service.Namespace)
-				if err != nil {
-					reqLogger.Error(err, "Error to send service delete event to API")
-					return
-				}
-
+			getServices:
 				services, err := k8sClient.CoreV1().Services(service.Namespace).List(context.TODO(), metav1.ListOptions{})
 				if err != nil {
 					fmt.Println("Error", err)
 					return
 				}
-				var typeValue string
-				var ipValue string
-				var name string
 				for _, v := range services.Items {
-					typeValue = v.Spec.Selector["app"]
-					ipValue = v.Status.LoadBalancer.Ingress[0].IP
-					name = v.Name
-
-					fmt.Println("A======A", v, "", typeValue, "", ipValue)
+					if v.Name == service.Name {
+						time.Sleep(2*time.Second)
+						goto getServices
+					}
 				}
-				fmt.Println("A======A", name)
-				if service.Name == "fake-service" && typeValue == "" && ipValue == "" {
-					fmt.Println("B======B", service.Name)
+				recreateFakeService := true
+				for _, v := range services.Items {
+					if v.Name != "fake-service" && v.Spec.Type == "NodePort" {
+						recreateFakeService = false
+					}
+				}
+				if recreateFakeService {
 					serviceAdd := &corev1.Service{
 						ObjectMeta: metav1.ObjectMeta{
 							Name:      service.Name,
@@ -200,7 +184,7 @@ func serviceWatch(k8sClient utils.ExtendedClient, stopper chan struct{}) {
 					}
 					newFakeService, err := k8sClient.CoreV1().Services(service.Namespace).Create(context.TODO(), serviceAdd, metav1.CreateOptions{})
 					if err != nil {
-						fmt.Println("ErrorDeleting........", err)
+						fmt.Println("Error creating fake-service........", err)
 						return
 					}
 					_, err = utils.PatchFakeServiceToSetIP(k8sClient, newFakeService, ip)
@@ -209,36 +193,13 @@ func serviceWatch(k8sClient utils.ExtendedClient, stopper chan struct{}) {
 						return
 					}
 
-				} else if service.Name != "fake-service" {
-					fmt.Println("IPPPPP", service.Spec.ClusterIP)
-					fmt.Println("Port", service.Spec.Ports)
-					newService := &corev1.Service{
-						ObjectMeta: metav1.ObjectMeta{
-							Name:      "fake-service",
-							Namespace: service.Namespace,
-						},
-						Spec: corev1.ServiceSpec{
-							Type: "LoadBalancer",
-							Ports: []corev1.ServicePort{
-								{Port: 80},
-							},
-						},
-					}
-					newFakeService, err := k8sClient.CoreV1().Services(service.Namespace).Create(context.TODO(), newService, metav1.CreateOptions{})
-					if err != nil {
-						fmt.Println("Error........", err)
-						return
-					}
-					_, err = utils.PatchFakeServiceToSetIP(k8sClient, newFakeService, ip)
-					if err != nil {
-						fmt.Println("Error====================", err)
-						return
-					}
-
-				} else {
-					fmt.Println("Do any thinks")
 				}
 
+				res, err := utils.DeleteRequestToAPI(utils.SERVICE_DELETE_EVENT_URL + "?kind=service&name=" + service.Name + "&namespace=" + service.Namespace)
+				if err != nil {
+					reqLogger.Error(err, "Error to send service delete event to API")
+					return
+				}
 				if res.StatusCode != http.StatusOK && res.StatusCode != http.StatusCreated {
 					responseBody, _ := ioutil.ReadAll(res.Body)
 					reqLogger.Error(errors.New("Error to send service delete event to API"), string(responseBody), "StatusCode", res.StatusCode)

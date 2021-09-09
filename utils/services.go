@@ -9,6 +9,7 @@ import (
 	"k8s.io/client-go/dynamic"
 	"k8s.io/client-go/kubernetes"
 	"log"
+	"time"
 )
 
 type CoreClient kubernetes.Interface
@@ -76,7 +77,21 @@ func GetNamespaceIP(k8sClient ExtendedClient, namespaceName string) (string, err
 
 func DeleteFakeService(k8sClient ExtendedClient, service *corev1.Service) error {
 	err := k8sClient.CoreV1().Services(service.Namespace).Delete(context.TODO(), service.Name, metav1.DeleteOptions{})
-	return err
+	if err != nil{
+		return err
+	}
+	listService, err := k8sClient.CoreV1().Services(service.Namespace).List(context.TODO(), metav1.ListOptions{})
+	if err != nil {
+		return err
+	}
+	for _, v := range listService.Items {
+		if v.Name == "fake-service" {
+			log.Println("deleting fake-service in progress ...")
+			time.Sleep(2*time.Second)
+			return DeleteFakeService(k8sClient, service)
+		}
+	}
+	return nil
 }
 
 // for type clusterIP or NodePort
