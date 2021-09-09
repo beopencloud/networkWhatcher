@@ -138,7 +138,7 @@ func serviceWatch(k8sClient utils.ExtendedClient, stopper chan struct{}) {
 		DeleteFunc: func(obj interface{}) {
 			go func(obj interface{}) {
 				service := obj.(*corev1.Service)
-				log.Println("DELETING SERVICE: ", service)
+				log.Println("DELETING SERVICE: ", service.Name)
 				reqLogger := serviceWatcherLogger.WithValues("service", service.Name, "namespace", service.Namespace)
 				watch, err := utils.CheckNamespaceAutoGen(k8sClient, service.Namespace)
 				if !watch || err != nil {
