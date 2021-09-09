@@ -56,11 +56,6 @@ spec:
             secretKeyRef:
               name: secret-mock
               key: password
-        - name: "URL_SERVICE"
-          valueFrom:
-            secretKeyRef:
-              name: secret-mock
-              key: url-service
 
       
       

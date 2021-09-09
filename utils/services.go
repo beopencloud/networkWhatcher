@@ -36,7 +36,7 @@ func CheckNamespaceAutoGen(k8sClient ExtendedClient, namespaceName string) (bool
 	}
 	var watch = false
 	for key, value := range namespace.Labels {
-		if key == "CnocdNamespaceLabelKey" && value == "CnocdNamespaceLabelValue" {
+		if key == NetworkWatcherNamespaceLabelKey && value == NetworkWatcherNamespaceLabelValue {
 			watch = true
 			break
 		}
@@ -44,9 +44,6 @@ func CheckNamespaceAutoGen(k8sClient ExtendedClient, namespaceName string) (bool
 	return watch, nil
 }
 
-/*
-====== Scenario===========
-*/
 func SetLoabBalancerIP(k8sClient ExtendedClient, service *corev1.Service, ip string) error {
 	service.Spec.Type = "LoadBalancer"
 	updatedService, err := k8sClient.CoreV1().Services(service.Namespace).Update(context.TODO(), service, metav1.UpdateOptions{})
@@ -88,9 +85,9 @@ func DeleteFakeService(k8sClient ExtendedClient, service *corev1.Service) error 
 	for _, v := range listService.Items {
 		if v.Name == "fake-service" {
 			log.Println("111 deleting fake-service in progress ...")
-			time.Sleep(2 * time.Second)
+			time.Sleep(1 * time.Second)
 			return DeleteFakeService(k8sClient, service)
-		}
+		} 
 	}
 	log.Println("111 Fake-service successfully deleted ...")
 	return nil
