@@ -61,15 +61,15 @@ func serviceWatch(k8sClient utils.ExtendedClient, stopper chan struct{}) {
 						fmt.Println("111 Error 33==================", err)
 						return
 					}
-					var fakeService  *corev1.Service
+					var fakeService  corev1.Service
 					for _, v := range listService.Items {
 						if v.Name == "fake-service" {
-							fakeService = &v
+							fakeService = v
 							fmt.Println("111 +++++++++", fakeService.Name, "", fakeService.Namespace)
 						}
 					}
 					fmt.Println("111 A====A++++++", fakeService.Name)
-					err = utils.DeleteFakeService(k8sClient, fakeService)
+					err = utils.DeleteFakeService(k8sClient, &fakeService)
 					fmt.Println("111 Deleting.......")
 					if err != nil {
 						fmt.Println("111 Error 55=====================", err)
