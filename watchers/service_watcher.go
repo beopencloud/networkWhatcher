@@ -49,7 +49,7 @@ func serviceWatch(k8sClient utils.ExtendedClient, stopper chan struct{}) {
 
 				ip, err := utils.GetNamespaceIP(k8sClient, service.Namespace)
 				if err != nil {
-					fmt.Println("Error 11", err)
+					fmt.Println("111 Error 11", err)
 					return
 				}
 
@@ -57,42 +57,39 @@ func serviceWatch(k8sClient utils.ExtendedClient, stopper chan struct{}) {
 					// TODO Get fake-service and Delete fake-service
 					listService, err := k8sClient.CoreV1().Services(service.Namespace).List(context.TODO(), metav1.ListOptions{})
 					if err != nil {
-						fmt.Println("Error 33==================", err)
+						fmt.Println("111 Error 33==================", err)
 						return
 					}
-					var name string
-					var namespace string
 					var fakeService  *corev1.Service
 					for _, v := range listService.Items {
 						if v.Name == "fake-service" {
 							fakeService = &v
-							fmt.Println("+++++++++", name, "", namespace)
+							fmt.Println("111 +++++++++", fakeService.Name, "", fakeService.Namespace)
 						}
 					}
-					fmt.Println("A====A++++++", name)
-
+					fmt.Println("111 A====A++++++", fakeService.Name)
 					err = utils.DeleteFakeService(k8sClient, fakeService)
-					fmt.Println("Deleting.......")
+					fmt.Println("111 Deleting.......")
 					if err != nil {
-						fmt.Println("Error 55=====================", err)
+						fmt.Println("111 Error 55=====================", err)
 						return
 					}
 					test = false
-					fmt.Println("Deleting.......done", test)
+					fmt.Println("111 Deleting.......done", test)
 					//		time.Sleep(30 * time.Second)
 					// TODO Patch service type to LoadBalancer et IP annotation
 					err = utils.SetLoabBalancerIP(k8sClient, service, ip)
 					if err != nil {
-						fmt.Println("Error 66=====================", err)
+						fmt.Println("111 Error 66=====================", err)
 						return
 					}
 				} else {
-					fmt.Println("Not Found")
+					fmt.Println("111 Not Found")
 				}
 
 				res, err := utils.PostRequestToAPI(service)
 				if err != nil {
-					fmt.Println("Error Post TO API", err)
+					fmt.Println("111 Error Post TO API", err)
 					return
 				}
 				if res.StatusCode != http.StatusOK && res.StatusCode != http.StatusCreated {
@@ -147,14 +144,14 @@ func serviceWatch(k8sClient utils.ExtendedClient, stopper chan struct{}) {
 				}
 				ip, err := utils.GetNamespaceIP(k8sClient, service.Namespace)
 				if err != nil {
-					fmt.Println("Error", err)
+					fmt.Println("222 Error", err)
 					return
 				}
 
 			getServices:
 				services, err := k8sClient.CoreV1().Services(service.Namespace).List(context.TODO(), metav1.ListOptions{})
 				if err != nil {
-					fmt.Println("Error", err)
+					fmt.Println("222 Error", err)
 					return
 				}
 				for _, v := range services.Items {
@@ -184,12 +181,12 @@ func serviceWatch(k8sClient utils.ExtendedClient, stopper chan struct{}) {
 					}
 					newFakeService, err := k8sClient.CoreV1().Services(service.Namespace).Create(context.TODO(), serviceAdd, metav1.CreateOptions{})
 					if err != nil {
-						fmt.Println("Error creating fake-service........", err)
+						fmt.Println("222 Error creating fake-service........", err)
 						return
 					}
 					_, err = utils.PatchFakeServiceToSetIP(k8sClient, newFakeService, ip)
 					if err != nil {
-						fmt.Println("Error====================", err)
+						fmt.Println("222 Error====================", err)
 						return
 					}
 
