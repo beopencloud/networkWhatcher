@@ -12,7 +12,7 @@ import (
 )
 
 const (
-	CnocdNamespaceLabelKey   = "beopenit.com/network-watching"
+	CnocdNamespaceLabelKey   = "intrabpce.fr/network-watching"
 	CnocdNamespaceLabelValue = "true"
 )
 

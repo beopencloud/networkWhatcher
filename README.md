@@ -21,6 +21,6 @@ After deploying, two pods will be created
 * one for API
 * one for operator
 
-Just the namespace that have the label **beopenit.com/network-watching=true** will be able to trace the logs 
+Just the namespace that have the label **intrabpce.fr/network-watching=true** will be able to trace the logs 
      
-     kubectl label ns default beopenit.com/network-watching=true
+     kubectl label ns default intrabpce.fr/network-watching=true
