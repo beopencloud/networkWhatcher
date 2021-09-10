@@ -63,9 +63,13 @@ func PutRequestToAPI(body interface{}) (*http.Response, error) {
 	return res, nil
 }
 
-func DeleteRequestToAPI(requestUrl string) (*http.Response, error) {
+func DeleteRequestToAPI(body interface{}) (*http.Response, error) {
+	data, err := json.Marshal(body)
+	if err != nil {
+		return nil, err
+	}
 	client := &http.Client{}
-	req, _ := http.NewRequest("DELETE", SERVICE_DELETE_EVENT_URL, nil)
+	req, _ := http.NewRequest("DELETE", SERVICE_DELETE_EVENT_URL, bytes.NewReader(data))
 	req.Header.Add("Authorization", "Basic "+BASIC_AUTH_CREDENTIALS)
 	res, err := client.Do(req)
 	if err != nil {

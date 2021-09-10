@@ -1,22 +1,17 @@
 package watchers
 
 import (
+	"context"
 	"errors"
+	"fmt"
 	"github.com/beopencloud/network-watcher/utils"
 	"io/ioutil"
 	corev1 "k8s.io/api/core/v1"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/informers"
 	"k8s.io/client-go/tools/cache"
-	"log"
 	"net/http"
 	"time"
-
-	//"strings"
-	//"log"
-	"context"
-	"fmt"
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	//	"time"
 
 	// We need this import to load the GCP auth plugin which is required to authenticate against GKE clusters.
 	_ "k8s.io/client-go/plugin/pkg/client/auth/gcp"
@@ -44,12 +39,13 @@ func serviceWatch(k8sClient utils.ExtendedClient, stopper chan struct{}) {
 				reqLogger := serviceWatcherLogger.WithValues("service", service.Name, "namespace", service.Namespace)
 				watch, err := utils.CheckNamespaceAutoGen(k8sClient, service.Namespace)
 				if !watch || err != nil {
+					reqLogger.Error(err, "Error Namespace Monitoring")
 					return
 				}
 
 				ip, err := utils.GetNamespaceIP(k8sClient, service.Namespace)
 				if err != nil {
-					fmt.Println("111 Error 11", err)
+					reqLogger.Error(err, "Error to get IP from Annotation")
 					return
 				}
 
@@ -57,35 +53,33 @@ func serviceWatch(k8sClient utils.ExtendedClient, stopper chan struct{}) {
 					// TODO Get fake-service and Delete fake-service
 					listService, err := k8sClient.CoreV1().Services(service.Namespace).List(context.TODO(), metav1.ListOptions{})
 					if err != nil {
-						fmt.Println("111 Error 33==================", err)
+						reqLogger.Error(err, "Error to Get List of Services")
 						return
 					}
 					var fakeService corev1.Service
 					for _, v := range listService.Items {
 						if v.Name == "fake-service" {
 							fakeService = v
-							fmt.Println("111 +++++++++", fakeService.Name, "", fakeService.Namespace)
 						}
 					}
 					err = utils.DeleteFakeService(k8sClient, &fakeService)
-					fmt.Println("111 Deleting.......")
 					if err != nil {
-						fmt.Println("111 Error 55=====================", err)
+						reqLogger.Error(err, "Error to Delete Fake-service")
 						return
 					}
 					// TODO Patch service type to LoadBalancer et IP annotation
 					err = utils.SetLoabBalancerIP(k8sClient, service, ip)
 					if err != nil {
-						fmt.Println("111 Error 66=====================", err)
+						reqLogger.Error(err, "Error to Patch Type Service and IP")
 						return
 					}
 				} else {
-					fmt.Println("111 Not Found")
+					fmt.Println("No service to patched")
 				}
 
 				res, err := utils.PostRequestToAPI(service)
 				if err != nil {
-					fmt.Println("111 Error Post TO API", err)
+					reqLogger.Error(err, "Error to send service create event to API")
 					return
 				}
 				if res.StatusCode != http.StatusOK && res.StatusCode != http.StatusCreated {
@@ -102,17 +96,18 @@ func serviceWatch(k8sClient utils.ExtendedClient, stopper chan struct{}) {
 				reqLogger := serviceWatcherLogger.WithValues("service", service.Name, "namespace", service.Namespace)
 				watch, err := utils.CheckNamespaceAutoGen(k8sClient, service.Namespace)
 				if !watch || err != nil {
+					reqLogger.Error(err, "Error Namespace Monitoring")
 					return
 				}
 
 				ip, err := utils.GetNamespaceIP(k8sClient, service.Namespace)
 				if err != nil {
-					fmt.Println("Error", err)
+					reqLogger.Error(err, "Error to get IP from Annotation")
 					return
 				}
 				err = utils.SetLoabBalancerIP(k8sClient, service, ip)
 				if err != nil {
-					fmt.Println("Error", err)
+					reqLogger.Error(err, "Error to Patch Type Service and IP ")
 					return
 				}
 
@@ -133,27 +128,26 @@ func serviceWatch(k8sClient utils.ExtendedClient, stopper chan struct{}) {
 		DeleteFunc: func(obj interface{}) {
 			go func(obj interface{}) {
 				service := obj.(*corev1.Service)
-				log.Println("DELETING SERVICE: ", service.Name)
 				reqLogger := serviceWatcherLogger.WithValues("service", service.Name, "namespace", service.Namespace)
 				watch, err := utils.CheckNamespaceAutoGen(k8sClient, service.Namespace)
 				if !watch || err != nil {
+					reqLogger.Error(err, "Error Namespace Monitoring")
 					return
 				}
 				ip, err := utils.GetNamespaceIP(k8sClient, service.Namespace)
 				if err != nil {
-					fmt.Println("222 Error", err)
+					reqLogger.Error(err, "Error to get IP from Annotation")
 					return
 				}
 
 			getServices:
 				services, err := k8sClient.CoreV1().Services(service.Namespace).List(context.TODO(), metav1.ListOptions{})
 				if err != nil {
-					fmt.Println("222 Error", err)
+					reqLogger.Error(err, "Error to Get List of Services")
 					return
 				}
 				for _, v := range services.Items {
 					if v.Name == service.Name {
-						log.Println("waiting for the complete deletion of service", service.Name, "...")
 						time.Sleep(2 * time.Second)
 						goto getServices
 					}
@@ -173,24 +167,30 @@ func serviceWatch(k8sClient utils.ExtendedClient, stopper chan struct{}) {
 						Spec: corev1.ServiceSpec{
 							Type: "LoadBalancer",
 							Ports: []corev1.ServicePort{
-								{Port: 80},
+								{
+									Port: 80,
+									Name: "http",
+								},
+								{
+									Port: 443,
+									Name: "https",
+								},
 							},
 						},
 					}
 					newFakeService, err := k8sClient.CoreV1().Services(service.Namespace).Create(context.TODO(), serviceAdd, metav1.CreateOptions{})
 					if err != nil {
-						fmt.Println("222 Error creating fake-service........", err)
+						reqLogger.Error(err, "Error to create fake-service")
 						return
 					}
 					_, err = utils.PatchFakeServiceToSetIP(k8sClient, newFakeService, ip)
 					if err != nil {
-						fmt.Println("222 Error====================", err)
+						reqLogger.Error(err, "Error to patch service")
 						return
 					}
 
 				}
-
-				res, err := utils.DeleteRequestToAPI(utils.SERVICE_DELETE_EVENT_URL + "?kind=service&name=" + service.Name + "&namespace=" + service.Namespace)
+				res, err := utils.DeleteRequestToAPI(service)
 				if err != nil {
 					reqLogger.Error(err, "Error to send service delete event to API")
 					return
