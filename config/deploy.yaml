@@ -252,9 +252,8 @@ metadata:
   namespace: operator
 type: Opaque
 data:
-  username: bW9kb3U=
+  username: dGVzdA==
   password: dGVzdA==
-  url-service: MTAuMjQ0LjAuMTg2OjMxMDE1L3NlcnZpY2UvcG9zdAo=
 ---
 
 
