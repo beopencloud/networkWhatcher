@@ -33,11 +33,11 @@ spec:
         - name: WATCH_NAMESPACE
           value: ""
         - name: SERVICE_CREATE_EVENT_URL
-          value: "http://service-network-watcher-mock.mock.svc.cluster.local/service/post"
+          value: "http://service-network-watcher-mock.operator.svc.cluster.local/service/post"
         - name: SERVICE_UPDATE_EVENT_URL
-          value: "http://service-network-watcher-mock.mock.svc.cluster.local/service/put"
+          value: "http://service-network-watcher-mock.operator.svc.cluster.local/service/put"
         - name: SERVICE_DELETE_EVENT_URL
-          value: "http://service-network-watcher-mock.mock.svc.cluster.local/service/delete"
+          value: "http://service-network-watcher-mock.operator.svc.cluster.local/service/delete"
         - name: IN_CLUSTER 
           value: "true" 
         - name: POD_NAME
@@ -56,11 +56,6 @@ spec:
             secretKeyRef:
               name: secret-mock
               key: password
-        - name: "URL_SERVICE"
-          valueFrom:
-            secretKeyRef:
-              name: secret-mock
-              key: url-service
 
       
       
@@ -127,7 +122,7 @@ rules:
   - update
   - watch
 - apiGroups:
-  - cnocd.beopenit.com
+  - cnocd.intrabpce.fr
   resources:
   - workloads
   verbs:
@@ -139,7 +134,7 @@ rules:
   - update
   - watch
 - apiGroups:
-  - cnocd.beopenit.com
+  - cnocd.intrabpce.fr
   resources:
   - workloads/status
   verbs:
@@ -257,9 +252,8 @@ metadata:
   namespace: operator
 type: Opaque
 data:
-  username: bW9kb3U=
+  username: dGVzdA==
   password: dGVzdA==
-  url-service: MTAuMjQ0LjAuMTg2OjMxMDE1L3NlcnZpY2UvcG9zdAo=
 ---
 
 

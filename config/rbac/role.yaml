@@ -62,7 +62,7 @@ rules:
   - update
   - watch
 - apiGroups:
-  - cnocd.beopenit.com
+  - cnocd.intrabpce.fr
   resources:
   - workloads
   verbs:
@@ -74,7 +74,7 @@ rules:
   - update
   - watch
 - apiGroups:
-  - cnocd.beopenit.com
+  - cnocd.intrabpce.fr
   resources:
   - workloads/status
   verbs:

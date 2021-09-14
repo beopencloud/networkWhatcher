@@ -12,8 +12,8 @@ import (
 )
 
 const (
-	CnocdNamespaceLabelKey   = "beopenit.com/network-watching"
-	CnocdNamespaceLabelValue = "true"
+	NetworkWatcherNamespaceLabelKey   = "intrabpce.fr/network-watching"
+	NetworkWatcherNamespaceLabelValue = "true"
 )
 
 // ++
@@ -25,7 +25,7 @@ const (
 
 var (
 	API_CONTENT_TYPE         = "application/json; charset=utf8 "
-	USERNAME                 = "modou"
+	USERNAME                 = "test"
 	PASSWORD                 = "test"
 	BASIC_AUTH_CREDENTIALS   = ""
 	SERVICE_CREATE_EVENT_URL = "http://localhost:31015/service/post"
