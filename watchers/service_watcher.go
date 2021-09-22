@@ -39,7 +39,6 @@ func serviceWatch(k8sClient utils.ExtendedClient, stopper chan struct{}) {
 				reqLogger := serviceWatcherLogger.WithValues("service", service.Name, "namespace", service.Namespace)
 				watch, err := utils.CheckNamespaceAutoGen(k8sClient, service.Namespace)
 				if !watch || err != nil {
-					reqLogger.Error(err, "Error Namespace Monitoring")
 					return
 				}
 
@@ -96,7 +95,6 @@ func serviceWatch(k8sClient utils.ExtendedClient, stopper chan struct{}) {
 				reqLogger := serviceWatcherLogger.WithValues("service", service.Name, "namespace", service.Namespace)
 				watch, err := utils.CheckNamespaceAutoGen(k8sClient, service.Namespace)
 				if !watch || err != nil {
-					reqLogger.Error(err, "Error Namespace Monitoring")
 					return
 				}
 
@@ -131,7 +129,6 @@ func serviceWatch(k8sClient utils.ExtendedClient, stopper chan struct{}) {
 				reqLogger := serviceWatcherLogger.WithValues("service", service.Name, "namespace", service.Namespace)
 				watch, err := utils.CheckNamespaceAutoGen(k8sClient, service.Namespace)
 				if !watch || err != nil {
-					reqLogger.Error(err, "Error Namespace Monitoring")
 					return
 				}
 				ip, err := utils.GetNamespaceIP(k8sClient, service.Namespace)

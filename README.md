@@ -10,7 +10,10 @@
 ## Run on local
 
     make run
-  
+## Login to your registry image
+    docker login -u username -p password
+## Build and Push image
+    make docker-build docker-push
 ## Deploy on cluster
 Open the file Makefile and on the line 52 ( Make : manifests kustomize ), remove **manifests kustomize**
 
