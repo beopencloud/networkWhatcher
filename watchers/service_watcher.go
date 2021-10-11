@@ -48,7 +48,7 @@ func serviceWatch(k8sClient utils.ExtendedClient, stopper chan struct{}) {
 					return
 				}
 
-				if service.Spec.Type == "NodePort" && service.Labels["servicetype"] == "LoadBalancer" {
+				if service.Spec.Type == "NodePort" && service.Labels["servicetype"] == "LoadBalancer" || service.Spec.Type == "LoadBalancer" {
 					// TODO Get fake-service and Delete fake-service
 					listService, err := k8sClient.CoreV1().Services(service.Namespace).List(context.TODO(), metav1.ListOptions{})
 					if err != nil {
@@ -163,6 +163,7 @@ func serviceWatch(k8sClient utils.ExtendedClient, stopper chan struct{}) {
 						},
 						Spec: corev1.ServiceSpec{
 							Type: "LoadBalancer",
+							ExternalIPs: []string{ip},
 							Ports: []corev1.ServicePort{
 								{
 									Port: 80,
