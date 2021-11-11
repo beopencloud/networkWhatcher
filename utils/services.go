@@ -80,4 +80,3 @@ func DeleteFakeService(k8sClient ExtendedClient, service *corev1.Service) error 
 	}
 	return nil
 }
-

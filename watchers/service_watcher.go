@@ -159,7 +159,7 @@ func serviceWatch(k8sClient utils.ExtendedClient, stopper chan struct{}) {
 				}
 				recreateFakeService := true
 				for _, v := range services.Items {
-					if v.Name != "fake-service" && (service.Spec.Type=="NodePort" && service.Labels["servicetype"]=="LoadBalancer" || service.Spec.Type=="LoadBalancer") {
+					if v.Name != "fake-service" && (service.Spec.Type == "NodePort" && (service.Labels["servicetype"] == "LoadBalancer" || service.Spec.Type == "LoadBalancer")) {
 						recreateFakeService = false
 					}
 				}
@@ -170,7 +170,7 @@ func serviceWatch(k8sClient utils.ExtendedClient, stopper chan struct{}) {
 							Namespace: service.Namespace,
 						},
 						Spec: corev1.ServiceSpec{
-							Type: "LoadBalancer",
+							Type:        "LoadBalancer",
 							ExternalIPs: []string{ip},
 							Ports: []corev1.ServicePort{
 								{
