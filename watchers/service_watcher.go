@@ -159,6 +159,7 @@ func serviceWatch(k8sClient utils.ExtendedClient, stopper chan struct{}) {
 				}
 				recreateFakeService := true
 				for _, v := range services.Items {
+					//if v.Name != "fake-service" && (v.Spec.Type == "NodePort" || (v.Labels["servicetype"] == "LoadBalancer" && v.Spec.Type == "LoadBalancer"))
 					if v.Name != "fake-service" && (service.Spec.Type == "NodePort" && (service.Labels["servicetype"] == "LoadBalancer" || service.Spec.Type == "LoadBalancer")) {
 						recreateFakeService = false
 					}
