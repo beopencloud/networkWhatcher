@@ -44,6 +44,7 @@ func CheckNamespaceAutoGen(k8sClient ExtendedClient, namespaceName string) (bool
 
 func SetLoabBalancerIP(k8sClient ExtendedClient, service *corev1.Service, ip string) error {
 	service.Spec.Type = "LoadBalancer"
+	//	time.Sleep(50 * time.Second)
 	service.Spec.ExternalIPs = []string{ip}
 	_, err := k8sClient.CoreV1().Services(service.Namespace).Update(context.TODO(), service, metav1.UpdateOptions{})
 	return err

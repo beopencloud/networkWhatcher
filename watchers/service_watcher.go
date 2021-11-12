@@ -48,7 +48,7 @@ func serviceWatch(k8sClient utils.ExtendedClient, stopper chan struct{}) {
 					return
 				}
 
-				if service.Spec.Type == "NodePort" && service.Labels["servicetype"] == "LoadBalancer" || service.Spec.Type == "LoadBalancer" {
+				if service.Spec.Type == "NodePort" && service.Labels["servicetype"] == "LoadBalancer" || (service.Spec.Type == "LoadBalancer" && service.Name != "fake-service") {
 					// TODO Get fake-service and Delete fake-service
 					listService, err := k8sClient.CoreV1().Services(service.Namespace).List(context.TODO(), metav1.ListOptions{})
 					if err != nil {
@@ -159,7 +159,7 @@ func serviceWatch(k8sClient utils.ExtendedClient, stopper chan struct{}) {
 				}
 				recreateFakeService := true
 				for _, v := range services.Items {
-					if v.Name != "fake-service" && (service.Spec.Type == "NodePort" && (service.Labels["servicetype"] == "LoadBalancer" || service.Spec.Type == "LoadBalancer")) {
+					if v.Name != "fake-service" || v.Spec.Type == "LoadBalancer" || (v.Spec.Type == "NodePort" && (v.Labels["servicetype"] == "LoadBalancer")) {
 						recreateFakeService = false
 					}
 				}
