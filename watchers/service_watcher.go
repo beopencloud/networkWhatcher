@@ -47,8 +47,18 @@ func serviceWatch(k8sClient utils.ExtendedClient, stopper chan struct{}) {
 					reqLogger.Error(err, "Error to get IP from Annotation")
 					return
 				}
+				nsAnnotation, err := utils.GetAllNamespaceAnnotations(k8sClient, service.Namespace)
+				if err != nil {
+					reqLogger.Error(err, "Error to get Namespace Annotations")
+					return
+				}
 
-				if service.Spec.Type == "NodePort" && service.Labels["servicetype"] == "LoadBalancer" || service.Spec.Type == "LoadBalancer" {
+				service.Annotations["location"] = nsAnnotation["location"]
+				service.Annotations["env"] = nsAnnotation["env"]
+				service.Annotations["role"] = nsAnnotation["role"]
+				service.Annotations["custum_role"] = nsAnnotation["custum_role"]
+
+				if service.Spec.Type == "NodePort" && service.Labels["servicetype"] == "LoadBalancer" || (service.Spec.Type == "LoadBalancer" && service.Name != "fake-service") {
 					// TODO Get fake-service and Delete fake-service
 					listService, err := k8sClient.CoreV1().Services(service.Namespace).List(context.TODO(), metav1.ListOptions{})
 					if err != nil {
@@ -103,18 +113,21 @@ func serviceWatch(k8sClient utils.ExtendedClient, stopper chan struct{}) {
 					reqLogger.Error(err, "Error to get IP from Annotation")
 					return
 				}
-				ipchanged := true
-				for _, value := range service.Spec.ExternalIPs {
-					if value == ip {
-						ipchanged = false
-					}
+				nsAnnotation, err := utils.GetAllNamespaceAnnotations(k8sClient, service.Namespace)
+				if err != nil {
+					reqLogger.Error(err, "Error to get Namespace Annotations")
+					return
 				}
-				if ipchanged {
-					err = utils.SetLoabBalancerIP(k8sClient, service, ip)
-					if err != nil {
-						reqLogger.Error(err, "Error to Patch Type Service and IP ")
-						return
-					}
+
+				service.Annotations["location"] = nsAnnotation["location"]
+				service.Annotations["env"] = nsAnnotation["env"]
+				service.Annotations["role"] = nsAnnotation["role"]
+				service.Annotations["custum_role"] = nsAnnotation["custum_role"]
+
+				err = utils.SetLoabBalancerIP(k8sClient, service, ip)
+				if err != nil {
+					reqLogger.Error(err, "Error to Patch Type Service and IP ")
+					return
 				}
 
 				res, err := utils.PutRequestToAPI(service)
@@ -159,7 +172,7 @@ func serviceWatch(k8sClient utils.ExtendedClient, stopper chan struct{}) {
 				}
 				recreateFakeService := true
 				for _, v := range services.Items {
-					if v.Name != "fake-service" && (service.Spec.Type=="NodePort" && service.Labels["servicetype"]=="LoadBalancer" || service.Spec.Type=="LoadBalancer") {
+					if v.Name != "fake-service" || v.Spec.Type == "LoadBalancer" || (v.Spec.Type == "NodePort" && (v.Labels["servicetype"] == "LoadBalancer")) {
 						recreateFakeService = false
 					}
 				}
@@ -170,8 +183,8 @@ func serviceWatch(k8sClient utils.ExtendedClient, stopper chan struct{}) {
 							Namespace: service.Namespace,
 						},
 						Spec: corev1.ServiceSpec{
-							Type: "LoadBalancer",
-							ExternalIPs: []string{ip},
+							Type:        "LoadBalancer",
+							//ExternalIPs: []string{ip},
 							Ports: []corev1.ServicePort{
 								{
 									Port: 80,
@@ -184,12 +197,16 @@ func serviceWatch(k8sClient utils.ExtendedClient, stopper chan struct{}) {
 							},
 						},
 					}
-					_, err := k8sClient.CoreV1().Services(service.Namespace).Create(context.TODO(), serviceAdd, metav1.CreateOptions{})
+					newService, err := k8sClient.CoreV1().Services(service.Namespace).Create(context.TODO(), serviceAdd, metav1.CreateOptions{})
 					if err != nil {
 						reqLogger.Error(err, "Error to create fake-service")
 						return
 					}
-
+					err = utils.SetLoabBalancerIP(k8sClient, newService, ip)
+					if err != nil {
+						reqLogger.Error(err, "Error to set loadBalancer IP")
+						return
+					}
 				}
 				res, err := utils.DeleteRequestToAPI(service)
 				if err != nil {

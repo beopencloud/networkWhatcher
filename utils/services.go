@@ -44,8 +44,13 @@ func CheckNamespaceAutoGen(k8sClient ExtendedClient, namespaceName string) (bool
 
 func SetLoabBalancerIP(k8sClient ExtendedClient, service *corev1.Service, ip string) error {
 	service.Spec.Type = "LoadBalancer"
-	service.Spec.ExternalIPs = []string{ip}
-	_, err := k8sClient.CoreV1().Services(service.Namespace).Update(context.TODO(), service, metav1.UpdateOptions{})
+	//service.Spec.ExternalIPs = []string{ip}
+	updatedService, err := k8sClient.CoreV1().Services(service.Namespace).Update(context.TODO(), service, metav1.UpdateOptions{})
+	if err != nil {
+		return err
+	}
+	updatedService.Status.LoadBalancer.Ingress = []corev1.LoadBalancerIngress{{IP: ip}}
+	_, err = k8sClient.CoreV1().Services(updatedService.Namespace).UpdateStatus(context.TODO(), updatedService, metav1.UpdateOptions{})
 	return err
 }
 
@@ -81,3 +86,11 @@ func DeleteFakeService(k8sClient ExtendedClient, service *corev1.Service) error 
 	return nil
 }
 
+
+func GetAllNamespaceAnnotations(k8sClient ExtendedClient, namespaceName string) (map[string]string, error) {
+	namespace, err := k8sClient.CoreV1().Namespaces().Get(context.TODO(), namespaceName, metav1.GetOptions{})
+	if err != nil {
+		return nil, err
+	}
+	return namespace.Annotations, nil
+}
