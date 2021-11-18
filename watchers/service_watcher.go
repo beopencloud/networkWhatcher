@@ -47,6 +47,9 @@ func serviceWatch(k8sClient utils.ExtendedClient, stopper chan struct{}) {
 					reqLogger.Error(err, "Error to get IP from Annotation")
 					return
 				}
+				if service.Annotations == nil {
+					service.Annotations = map[string]string{}
+				}
 				nsAnnotation, err := utils.GetAllNamespaceAnnotations(k8sClient, service.Namespace)
 				if err != nil {
 					reqLogger.Error(err, "Error to get Namespace Annotations")
@@ -114,12 +117,14 @@ func serviceWatch(k8sClient utils.ExtendedClient, stopper chan struct{}) {
 					reqLogger.Error(err, "Error to get IP from Annotation")
 					return
 				}
+				if service.Annotations == nil {
+					service.Annotations = map[string]string{}
+				}
 				nsAnnotation, err := utils.GetAllNamespaceAnnotations(k8sClient, service.Namespace)
 				if err != nil {
 					reqLogger.Error(err, "Error to get Namespace Annotations")
 					return
 				}
-
 				if nsAnnotation != nil {
 					service.Annotations["location"] = nsAnnotation["location"]
 					service.Annotations["env"] = nsAnnotation["env"]
