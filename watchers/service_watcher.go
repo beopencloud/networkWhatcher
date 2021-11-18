@@ -52,11 +52,12 @@ func serviceWatch(k8sClient utils.ExtendedClient, stopper chan struct{}) {
 					reqLogger.Error(err, "Error to get Namespace Annotations")
 					return
 				}
-
-				service.Annotations["location"] = nsAnnotation["location"]
-				service.Annotations["env"] = nsAnnotation["env"]
-				service.Annotations["role"] = nsAnnotation["role"]
-				service.Annotations["custum_role"] = nsAnnotation["custum_role"]
+				if nsAnnotation != nil {
+					service.Annotations["location"] = nsAnnotation["location"]
+					service.Annotations["env"] = nsAnnotation["env"]
+					service.Annotations["role"] = nsAnnotation["role"]
+					service.Annotations["custum_role"] = nsAnnotation["custum_role"]
+				}
 
 				if service.Spec.Type == "NodePort" && service.Labels["servicetype"] == "LoadBalancer" || (service.Spec.Type == "LoadBalancer" && service.Name != "fake-service") {
 					// TODO Get fake-service and Delete fake-service
@@ -119,10 +120,12 @@ func serviceWatch(k8sClient utils.ExtendedClient, stopper chan struct{}) {
 					return
 				}
 
-				service.Annotations["location"] = nsAnnotation["location"]
-				service.Annotations["env"] = nsAnnotation["env"]
-				service.Annotations["role"] = nsAnnotation["role"]
-				service.Annotations["custum_role"] = nsAnnotation["custum_role"]
+				if nsAnnotation != nil {
+					service.Annotations["location"] = nsAnnotation["location"]
+					service.Annotations["env"] = nsAnnotation["env"]
+					service.Annotations["role"] = nsAnnotation["role"]
+					service.Annotations["custum_role"] = nsAnnotation["custum_role"]
+				}
 
 				err = utils.SetLoabBalancerIP(k8sClient, service, ip)
 				if err != nil {
