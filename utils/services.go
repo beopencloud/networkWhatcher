@@ -86,7 +86,6 @@ func DeleteFakeService(k8sClient ExtendedClient, service *corev1.Service) error 
 	return nil
 }
 
-
 func GetAllNamespaceAnnotations(k8sClient ExtendedClient, namespaceName string) (map[string]string, error) {
 	namespace, err := k8sClient.CoreV1().Namespaces().Get(context.TODO(), namespaceName, metav1.GetOptions{})
 	if err != nil {
