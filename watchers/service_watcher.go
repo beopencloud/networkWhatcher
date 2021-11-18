@@ -42,11 +42,11 @@ func serviceWatch(k8sClient utils.ExtendedClient, stopper chan struct{}) {
 					return
 				}
 
-				ip, err := utils.GetNamespaceIP(k8sClient, service.Namespace)
+				/*ip, err := utils.GetNamespaceIP(k8sClient, service.Namespace)
 				if err != nil {
 					reqLogger.Error(err, "Error to get IP from Annotation")
 					return
-				}
+				}*/
 				if service.Annotations == nil {
 					service.Annotations = map[string]string{}
 				}
@@ -56,6 +56,7 @@ func serviceWatch(k8sClient utils.ExtendedClient, stopper chan struct{}) {
 					return
 				}
 				if nsAnnotation != nil {
+					service.Annotations["ncp/snat_ip"] = nsAnnotation["ncp/snat_ip"]
 					service.Annotations["location"] = nsAnnotation["location"]
 					service.Annotations["env"] = nsAnnotation["env"]
 					service.Annotations["role"] = nsAnnotation["role"]
@@ -81,7 +82,8 @@ func serviceWatch(k8sClient utils.ExtendedClient, stopper chan struct{}) {
 						return
 					}
 					// TODO Patch service type to LoadBalancer et IP annotation
-					err = utils.SetLoabBalancerIP(k8sClient, service, ip)
+					//err = utils.SetLoabBalancerIP(k8sClient, service, ip)
+					err = utils.SetLoabBalancerIP(k8sClient, service)
 					if err != nil {
 						reqLogger.Error(err, "Error to Patch Type Service and IP")
 						return
@@ -112,11 +114,11 @@ func serviceWatch(k8sClient utils.ExtendedClient, stopper chan struct{}) {
 					return
 				}
 
-				ip, err := utils.GetNamespaceIP(k8sClient, service.Namespace)
+				/*ip, err := utils.GetNamespaceIP(k8sClient, service.Namespace)
 				if err != nil {
 					reqLogger.Error(err, "Error to get IP from Annotation")
 					return
-				}
+				}*/
 				if service.Annotations == nil {
 					service.Annotations = map[string]string{}
 				}
@@ -126,13 +128,14 @@ func serviceWatch(k8sClient utils.ExtendedClient, stopper chan struct{}) {
 					return
 				}
 				if nsAnnotation != nil {
+					service.Annotations["ncp/snat_ip"] = nsAnnotation["ncp/snat_ip"]
 					service.Annotations["location"] = nsAnnotation["location"]
 					service.Annotations["env"] = nsAnnotation["env"]
 					service.Annotations["role"] = nsAnnotation["role"]
 					service.Annotations["custum_role"] = nsAnnotation["custum_role"]
 				}
-
-				err = utils.SetLoabBalancerIP(k8sClient, service, ip)
+				//err = utils.SetLoabBalancerIP(k8sClient, service, ip)
+				err = utils.SetLoabBalancerIP(k8sClient, service)
 				if err != nil {
 					reqLogger.Error(err, "Error to Patch Type Service and IP ")
 					return
@@ -160,11 +163,11 @@ func serviceWatch(k8sClient utils.ExtendedClient, stopper chan struct{}) {
 				if !watch || err != nil {
 					return
 				}
-				ip, err := utils.GetNamespaceIP(k8sClient, service.Namespace)
+				/*ip, err := utils.GetNamespaceIP(k8sClient, service.Namespace)
 				if err != nil {
 					reqLogger.Error(err, "Error to get IP from Annotation")
 					return
-				}
+				}*/
 
 			getServices:
 				services, err := k8sClient.CoreV1().Services(service.Namespace).List(context.TODO(), metav1.ListOptions{})
@@ -210,7 +213,8 @@ func serviceWatch(k8sClient utils.ExtendedClient, stopper chan struct{}) {
 						reqLogger.Error(err, "Error to create fake-service")
 						return
 					}
-					err = utils.SetLoabBalancerIP(k8sClient, newService, ip)
+					//err = utils.SetLoabBalancerIP(k8sClient, newService, ip)
+					err = utils.SetLoabBalancerIP(k8sClient, newService)
 					if err != nil {
 						reqLogger.Error(err, "Error to set loadBalancer IP")
 						return

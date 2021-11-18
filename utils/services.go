@@ -2,13 +2,13 @@ package utils
 
 import (
 	"context"
-	"errors"
 	corev1 "k8s.io/api/core/v1"
-	k8sError "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/dynamic"
 	"k8s.io/client-go/kubernetes"
 	"time"
+	"errors"
+	k8sError "k8s.io/apimachinery/pkg/api/errors"
 )
 
 type CoreClient kubernetes.Interface
@@ -42,7 +42,22 @@ func CheckNamespaceAutoGen(k8sClient ExtendedClient, namespaceName string) (bool
 	return watch, nil
 }
 
-func SetLoabBalancerIP(k8sClient ExtendedClient, service *corev1.Service, ip string) error {
+func SetLoabBalancerIP(k8sClient ExtendedClient, service *corev1.Service) error {
+	if service.Annotations == nil {
+		service.Annotations = map[string]string{}
+	}
+	if len(service.Status.LoadBalancer.Ingress) == 0 {
+		return nil
+	}
+	service.Annotations["service_ip"] = service.Status.LoadBalancer.Ingress[0].IP
+	_, err := k8sClient.CoreV1().Services(service.Namespace).Update(context.TODO(), service, metav1.UpdateOptions{})
+	if err != nil {
+		return err
+	}
+	return err
+}
+
+/* func SetLoabBalancerIP(k8sClient ExtendedClient, service *corev1.Service, ip string) error {
 	service.Spec.Type = "LoadBalancer"
 	//service.Spec.ExternalIPs = []string{ip}
 	updatedService, err := k8sClient.CoreV1().Services(service.Namespace).Update(context.TODO(), service, metav1.UpdateOptions{})
@@ -52,7 +67,7 @@ func SetLoabBalancerIP(k8sClient ExtendedClient, service *corev1.Service, ip str
 	updatedService.Status.LoadBalancer.Ingress = []corev1.LoadBalancerIngress{{IP: ip}}
 	_, err = k8sClient.CoreV1().Services(updatedService.Namespace).UpdateStatus(context.TODO(), updatedService, metav1.UpdateOptions{})
 	return err
-}
+}*/
 
 func GetNamespaceIP(k8sClient ExtendedClient, namespaceName string) (string, error) {
 	namespace, err := k8sClient.CoreV1().Namespaces().Get(context.TODO(), namespaceName, metav1.GetOptions{})
